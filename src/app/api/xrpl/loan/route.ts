@@ -23,6 +23,8 @@ export async function POST(request: NextRequest) {
       paymentTotal?: number;
       paymentInterval?: number;
       gracePeriod?: number;
+      vaultId?: string;
+      mptIssuanceId?: string;
     };
 
     if (body.action !== "create" && body.action !== "delete") {
@@ -55,8 +57,8 @@ export async function POST(request: NextRequest) {
         borrower: borrower.classicAddress,
         provider: provider.classicAddress,
         loanBroker: loanBroker.classicAddress,
-        vaultId: "",
-        mptIssuanceId: "",
+        vaultId: body.vaultId ?? "",
+        mptIssuanceId: body.mptIssuanceId ?? "",
         principalAmount,
         interestRate,
         paymentTotal,
