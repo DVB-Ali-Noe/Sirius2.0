@@ -4,6 +4,7 @@
 
 DataLend — Lending pool DeFi pour datasets IA, built on XRPL.
 Hackathon PBW26, 2 devs backend.
+**Track Boundless** : ZK proofs vérifiées on-chain XRPL via Smart Escrow Wasm.
 
 ## Stack
 
@@ -12,7 +13,10 @@ Hackathon PBW26, 2 devs backend.
 - **State :** Zustand (client), React Query (server)
 - **Charts :** Recharts
 - **Backend :** API Routes Next.js (pas de serveur séparé)
-- **XRPL :** xrpl.js, devnet
+- **XRPL :** xrpl.js@4.5.0-smartescrow.4, alphanet (ZK precompile)
+- **ZK Proofs :** RISC Zero zkVM + Boundless prover network (Base Sepolia)
+- **Smart Escrow :** Wasm sur XRPL (vérifie les preuves ZK on-chain)
+- **Wallet :** xrpl-connect (Gem, Crossmark, Xaman)
 - **Storage :** Pinata (IPFS)
 - **Encryption :** AES-256-GCM (Node.js crypto)
 
@@ -21,7 +25,8 @@ Hackathon PBW26, 2 devs backend.
 ```
 Frontend (Next.js 16)
   → API Routes (Sirius + Loan logic + IPFS)
-    → XRPL Devnet (MPT, Vault, Lending, Credentials)
+    → XRPL alphanet Devnet (MPT, Vault, Lending, Credentials, Smart Escrow)
+    → Boundless (Base Sepolia) → proving network → receipt
     → Pinata (IPFS storage)
 ```
 
@@ -35,6 +40,7 @@ Frontend (Next.js 16)
 - Libs/utils dans `lib/`
 - XRPL logic dans `lib/xrpl/`
 - Sirius logic dans `lib/sirius/`
+- Boundless/ZK logic dans `lib/boundless/` ou dossier Rust séparé
 - Pas de commentaires évidents
 - Pas de code mort, pas de TODO
 
@@ -45,6 +51,23 @@ Frontend (Next.js 16)
 - **XLS-66** — Lending Protocol : gère les loans
 - **XLS-70** — Credentials : KYB borrower, certification provider
 - **XLS-80** — Permissioned Domains : contrôle d'accès au vault
+- **Smart Escrow (Wasm)** — vérifie les preuves ZK Boundless directement on-chain XRPL
+
+## ZK Proof Flow (Boundless)
+
+```
+Dataset → Guest program (Rust/RISC-V) → Boundless (Base Sepolia)
+  → provers génèrent la preuve → receipt (journal + seal)
+  → Smart Escrow Wasm sur XRPL vérifie la preuve on-chain
+  → MPT minté avec zkProofRef = tx hash de la vérification
+```
+
+## Réseaux
+
+- **XRPL :** alphanet (`wss://alphanet.nerdnest.xyz`)
+- **Faucet XRPL :** `https://alphanet.faucet.nerdnest.xyz/accounts`
+- **Boundless :** Base Sepolia (chain ID 84532)
+- **BoundlessMarket :** `0x56da3786061c82214d18e634d2817e86ad42d7ce`
 
 ## Commandes
 
@@ -61,3 +84,5 @@ pnpm lint         # Lint
 - Architecture détaillée : `README.md`
 - XRPL docs : https://xrpl.org/docs
 - xrpl.js : https://js.xrpl.org
+- Boundless docs : https://docs.boundless.network
+- XRPL RISC0 Starter : https://github.com/boundless-xyz/xrpl-risc0-starter

@@ -2,11 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useWalletStore } from "@/stores/wallet";
-import { DEVNET_JSON_RPC_URL } from "@/lib/xrpl/constants";
+import { XRPL_JSON_RPC_URL } from "@/lib/xrpl/constants";
 
 async function fetchBalance(address: string): Promise<string> {
   const res = await fetch(
-    DEVNET_JSON_RPC_URL,
+    XRPL_JSON_RPC_URL,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

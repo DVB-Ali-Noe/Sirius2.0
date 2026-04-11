@@ -2,238 +2,273 @@
 
 ## Objectif
 
-Démo fonctionnelle end-to-end : un provider dépose un dataset, un borrower emprunte l'accès, paie, et l'accès est révoqué à expiration. Pitch 3min + 2min Q&A.
+Démo fonctionnelle end-to-end : un provider dépose un dataset, un borrower emprunte l'accès, paie, et l'accès est révoqué à expiration. **Vraie preuve ZK Boundless vérifiée on-chain XRPL.** Pitch 3min + 2min Q&A.
 
-- **Équipe :** 2 devs backend (dont 1 très bon en crypto)
-- **Temps restant :** 18h
+- **Équipe :** 1 dev (fait tout)
+- **Tracks :** XRPL + **Boundless (ZK proofs on-chain XRPL)**
 - **Cible :** Jury hackathon XRPL PBW26
-- **Réseau :** XRPL Testnet/Devnet
-
----
-
-## Hypothèses à vérifier immédiatement (1h max)
-
-| Point | Comment vérifier | Impact si indisponible |
-|---|---|---|
-| XLS-65/66 sur devnet | `xrpl.org/docs` + tester une tx sur devnet | Simuler vault/lending côté backend (DB + logique custom) |
-| Boundless SDK | Checker leur doc/GitHub | Générer des "preuves" statiques crédibles pour la démo |
-| IPFS provider | Créer un compte Pinata (gratuit, 2min) | Pinata par défaut, c'est le plus simple |
+- **Réseau XRPL :** alphanet (`wss://alphanet.nerdnest.xyz`) — tous les amendments + Smart Escrow
+- **Réseau Boundless :** Base Sepolia (chain ID 84532)
 
 ---
 
 ## Architecture
 
 ```
-┌──────────────────────────────────┐
-│     Next.js 16 Frontend          │
-│     (App Router, existant)       │
-└──────────────┬───────────────────┘
-               │ API Routes
-               ▼
-┌──────────────────────────────────┐
-│     Backend (API Routes Next.js) │
-│     - Sirius (encrypt/decrypt)   │
-│     - Loan logic                 │
-│     - IPFS upload (Pinata)       │
-└──────────┬───────────┬───────────┘
-           │           │
-           ▼           ▼
-┌──────────────┐ ┌─────────────┐
-│  XRPL Devnet │ │  Pinata     │
-│  (MPT, Creds)│ │  (IPFS)     │
-└──────────────┘ └─────────────┘
-```
-
-### Stack
-
-- **Frontend :** Next.js 16 (App Router), React 19, TypeScript 5, Tailwind v4
-- **3D/Animations :** Three.js + R3F, GSAP + Lenis, Framer Motion
-- **State :** Zustand (client), React Query (server)
-- **Charts :** Recharts
-- **Backend :** API Routes Next.js (pas de serveur séparé)
-- **XRPL :** xrpl.js sur devnet
-- **Wallet :** xrpl-connect (Gem, Crossmark, Xaman)
-- **Storage :** Pinata (IPFS)
-- **Encryption :** AES-256-GCM (Node.js crypto)
-
----
-
-## Répartition des rôles
-
-| Dev 1 (Crypto) | Dev 2 (Backend + Front) |
-|---|---|
-| Vérification XLS-65/66/70/80 sur devnet | Setup Pinata + upload/download IPFS |
-| MPT minting (XLS-33) | Sirius : encryption AES + key management |
-| Vault + Lending (natif ou simulé) | Sirius : Merkle tree du dataset |
-| Credentials (XLS-70) | Adaptation frontend (pages + flow) |
-| Intégration wallet XRPL (xrpl-connect) | ZK proofs (Boundless ou mock crédible) |
-| Loan flow + state machine | Composants UI (dataset card, loan status, etc.) |
-| Events XRPL + repayment + distribution | Stores Zustand + hooks React Query |
-| API Routes XRPL | Animations de transition |
-| Détection rôle wallet (loanbroker/provider/borrower) | Pages provider, marketplace, borrower, admin |
-
----
-
-## Phases de développement
-
-### Phase 0 — Validation & Setup (1h) ✅ Dev 1
-
-- [x] Vérifier dispo XLS-65/66 sur devnet → **Toutes dispo**
-- [x] Créer compte Pinata → **Dev 2**
-- [ ] Checker Boundless SDK → **Dev 2**
-- [x] Setup wallets devnet (faucet) → **Wallets via .env.local**
-- [x] Décision : natif XRPL ou simulation backend → **Natif XRPL, tout dispo sur devnet**
-
-### Phase 1 — Core XRPL + Sirius (6h)
-
-**Dev 1 : ✅ TERMINÉ**
-- [x] MPT minting avec metadata (IPFS hash, quality cert, schema, **description dataset**)
-- [x] Vault deposit (XLS-65) + Lending Pool creation
-- [x] Credentials (XLS-70) : DataProviderCertified, BorrowerKYB, TierOneCertified, DefaultBlacklist
-- [x] Permissioned Domains (XLS-80)
-- [x] Loan creation (XLS-66)
-- [x] API Routes : `/api/xrpl/{wallets,mint,credentials,vault,loan}`
-
-**Dev 2 :**
-- [ ] Pipeline : dataset → chunk → Merkle tree → AES encrypt → upload Pinata → retourner CID
-- [ ] API de décryption avec clé temporaire (TTL)
-- [ ] Endpoint upload dataset (multipart)
-- [ ] Endpoint download/query dataset (avec auth)
-
-### Phase 2 — Loan Flow complet (5h)
-
-**Dev 1 : ✅ TERMINÉ**
-- [x] Flow loan : borrower request → MPT transfer → repayment → expiry/default
-- [x] Events XRPL écoutés via WebSocket subscribe
-- [x] Gestion des états : PENDING → ACTIVE → REPAYING → COMPLETED/DEFAULTED (state machine avec transitions validées)
-- [x] Repayment tracking + default detection
-- [x] Interest distribution pro-rata aux providers
-- [x] Route démo end-to-end `/api/xrpl/demo`
-- [x] Routes : `/api/xrpl/{loan/status,loan/repay,events}`
-
-**Dev 2 :**
-- [ ] Sirius réagit aux events : génère clé borrower
-- [ ] Watermark basique : perturbation déterministe sur un subset de rows
-- [ ] Révocation de clé à expiration
-- [ ] Intégration Sirius ↔ XRPL events
-
-### Phase 3 — Frontend & Intégration (4h)
-
-**Dev 1 : ✅ TERMINÉ**
-- [x] Intégration wallet xrpl-connect (Gem + Crossmark + Xaman)
-- [x] Modal multi-wallet thémée au design system
-- [x] Bouton Connect/Disconnect avec dropdown (Copy Address, Disconnect)
-- [x] Zustand store wallet avec persistance localStorage
-- [x] Détection automatique du rôle (loanbroker/provider/borrower)
-- [x] Hooks : `useWalletBalance`, `useWalletCredentials`
-- [x] Badge réseau "Devnet"
-
-**Dev 2 :**
-- [ ] Pages provider, marketplace, borrower
-- [ ] Page admin (conditionné au rôle loanbroker)
-- [ ] Composants UI : dataset card, loan status, quality certificate viewer
-- [ ] Data flow : Zustand stores + React Query hooks vers API Routes
-- [ ] Sidebar conditionnel selon le rôle
-- [ ] Animations de transition entre les étapes du flow
-
-### Phase 4 — Polish & Démo (2h)
-
-- [ ] Préparer dataset de démo réaliste (1000 rows instruction-tuning)
-- [ ] Tester le flow complet end-to-end
-- [ ] Préparer le pitch : script 3min
-- [ ] Anticiper les questions Q&A
-- [ ] Fix bugs critiques uniquement
-- [ ] Vérifier que la démo tourne offline-proof (réseau hackathon instable)
-
----
-
-## Sécurité (Audit Dev 1) ✅
-
-Deux passes d'audit effectuées. Tous les fix critiques et importants appliqués :
-
-- [x] Auth API key (timing-safe) sur toutes les routes
-- [x] Validation des body avec champs requis
-- [x] Race condition client XRPL fixée (lock promise + finally)
-- [x] Try/catch sur toutes les routes API
-- [x] State machine respectée partout (addPayment, checkDefault)
-- [x] parseXrpToDrops avec validation NaN + Math.round
-- [x] URLs devnet centralisées (constants.ts)
-- [x] Listeners cleanup (manager.off)
-- [x] Zustand persist localStorage
-- [x] Guard env variables avec message explicite
-- [x] TextDecoder côté client (pas de Buffer)
-- [x] Suppression du code mort (checkAndTriggerDefault wrapper)
-- [x] toHex centralisé (utils.ts)
-
----
-
-## Fichiers créés par Dev 1
-
-```
-src/lib/xrpl/
-  ├── client.ts          — Connexion devnet, singleton avec lock
-  ├── constants.ts       — URLs devnet centralisées
-  ├── wallets.ts         — Wallets depuis .env.local
-  ├── mpt.ts             — MPT minting + authorize + metadata enrichie
-  ├── credentials.ts     — Issue/accept credentials (4 types)
-  ├── domains.ts         — Permissioned Domains
-  ├── vault.ts           — Vault + Lending Pool
-  ├── lending.ts         — Loan create/delete
-  ├── loan-state.ts      — State machine (6 états, transitions validées)
-  ├── events.ts          — WebSocket subscribe + dispatch events
-  ├── repayment.ts       — Paiements XRP + tracking
-  ├── distribution.ts    — Distribution intérêts pro-rata
-  ├── utils.ts           — toHex, parseXrpToDrops
-  └── index.ts           — Barrel export
-
-src/lib/wallet/
-  └── manager.ts         — WalletManager singleton (xrpl-connect)
-
-src/lib/api-utils.ts     — Auth timing-safe, error handling, validation
-
-src/app/api/xrpl/
-  ├── wallets/route.ts
-  ├── mint/route.ts
-  ├── credentials/route.ts
-  ├── vault/route.ts
-  ├── loan/route.ts
-  ├── loan/status/route.ts
-  ├── loan/repay/route.ts
-  ├── events/route.ts
-  └── demo/route.ts
-
-src/components/wallet/
-  ├── wallet-connector.tsx  — Web component thémé + triggerWalletConnect
-  ├── connect-button.tsx    — Bouton Connect/Disconnect + dropdown
-  └── wallet-info.tsx       — Widget adresse + balance
-
-src/stores/wallet.ts     — Zustand store (address, network, role, persist)
-src/hooks/use-wallet-balance.ts
-src/hooks/use-wallet-credentials.ts
-src/types/xrpl-connect.d.ts
+┌──────────────────────────────────────────────────────────┐
+│                    Frontend (Next.js 16)                   │
+│                    App Router, React 19                    │
+└──────────────────────────┬───────────────────────────────┘
+                           │ API Routes
+                           ▼
+┌──────────────────────────────────────────────────────────┐
+│              Backend (API Routes Next.js)                  │
+│   Sirius (encrypt/IPFS/keys/watermark)                    │
+│   XRPL logic (MPT/Vault/Lending/Credentials)             │
+│   Boundless bridge (CLI subprocess → receipt)             │
+└──────┬──────────────┬──────────────┬─────────────────────┘
+       │              │              │
+       ▼              ▼              ▼
+┌──────────────┐ ┌──────────┐ ┌──────────────────┐
+│ XRPL alphanet│ │  Pinata  │ │  Boundless       │
+│              │ │  (IPFS)  │ │  (Base Sepolia)  │
+│ MPT (XLS-33) │ │          │ │                  │
+│ Vault (XLS-65)│ │         │ │  Guest program   │
+│ Lending(XLS-66)│ │        │ │  → provers GPU   │
+│ Creds (XLS-70)│ │         │ │  → receipt       │
+│ Domains(XLS-80)│ │        │ │                  │
+│ Smart Escrow  │ │         │ │                  │
+│ (ZK verify)   │ │         │ │                  │
+└──────────────┘ └──────────┘ └──────────────────┘
 ```
 
 ---
 
-## Stratégie de mock (dernier recours uniquement)
+## État actuel — Ce qui est fait
 
-| Composant | Mock crédible |
-|---|---|
-| Boundless ZK | JSON "proof" statique avec les bonnes assertions, affiché dans l'UI |
-| Kleros arbitration | Bouton "Raise Dispute" → toast "Submitted to arbitration" |
-| Watermark detection | Diff visuel entre 2 versions du dataset (pre-computed) |
+### ✅ lib/xrpl/ (15 fichiers) — COMPLET
+Client, wallets, MPT, credentials, domains, vault, lending, loan-state, events, repayment, distribution, utils, constants, index.
+
+### ✅ API Routes XRPL (9 routes) — COMPLET
+wallets, mint, credentials, vault, loan, loan/status, loan/repay, events, demo. Toutes avec auth timing-safe + validation + try/catch.
+
+### ✅ Wallet connect — COMPLET
+xrpl-connect (Gem, Crossmark, Xaman), store Zustand avec rôle + persist, hooks balance/credentials, header intégré.
+
+### ✅ lib/sirius/ (10 fichiers) — FAIT PAR DEV 2
+- `encryption.ts` — **Réel** AES-256-GCM
+- `merkle.ts` — **Réel** SHA-256 Merkle tree
+- `watermark.ts` — **Réel** perturbation déterministe
+- `pipeline.ts` — **Réel** orchestre ingest complet
+- `ipfs.ts` — **Dual** Pinata si JWT, sinon mock in-memory
+- `key-store.ts` — In-memory (OK pour hackathon)
+- `dataset-registry.ts` — In-memory (OK pour hackathon)
+- `xrpl-bridge.ts` — **Réel** bridge events XRPL ↔ Sirius
+- `boundless.ts` — ❌ **MOCK** à remplacer par vrai Boundless
+
+### ✅ API Routes Sirius (7 routes) — FAIT PAR DEV 2
+upload, datasets, download, activate, key/status, verify-proof, watermark/detect.
+
+### ✅ Frontend existant
+- Landing page + Blob 3D
+- Layout (Header, Sidebar, Footer)
+- Common components (Modal, Toast, LoadingSpinner, EmptyState)
+
+### ✅ Infra installée
+- Rust 1.91.0, RISC Zero toolchain (rzup), Boundless CLI 1.2.2, Foundry (cast), Docker
+- Migration alphanet effectuée (constants.ts)
 
 ---
 
-## Risques identifiés
+## Ce qui reste — Tâches détaillées
 
-| Risque | Probabilité | Plan B |
-|---|---|---|
-| XLS-65/66 pas sur devnet | ~~Haute~~ **Résolu** | ✅ Tout dispo sur devnet |
-| Encryption/IPFS trop lent | Faible | Dataset petit pour la démo (1000 rows) |
-| Manque de temps sur le front | Moyenne | Focus sur le flow provider→borrower, pas sur le polish |
-| Wallet integration galère | ~~Moyenne~~ **Résolu** | ✅ xrpl-connect fonctionne |
-| Réseau hackathon instable | Moyenne | Préparer un mode offline avec données cached |
+### BLOC A — Boundless ZK (priorité absolue)
+
+C'est le différenciateur. Sans ça, pas de track Boundless.
+
+#### A1. Setup Boundless requestor (15min)
+- [ ] `boundless requestor setup` → choisir `base-sepolia`, fournir private key + RPC URL
+- [ ] `boundless requestor deposit 0.005` → déposer ETH Base Sepolia
+- [ ] Vérifier le solde dans le contrat BoundlessMarket
+
+#### A2. Guest program Rust — `dataset-certifier` (2h)
+Le code prouvé dans le zkVM. Reçoit un dataset JSON, calcule et commit :
+- [ ] Créer le projet Rust : `cargo risczero new dataset-certifier`
+- [ ] Guest (`methods/guest/src/main.rs`) :
+  - Lire le dataset JSON depuis stdin
+  - Compter les entrées (`entry_count`)
+  - Calculer le taux de doublons par hash (`duplicate_rate`)
+  - Vérifier la conformité schéma (`schema_valid`, `field_completeness`)
+  - Calculer le `quality_score` (0-100) :
+    - Taille dataset (max 30pts)
+    - Doublons (max 30pts)
+    - Schéma valide (20pts)
+    - Complétude champs (max 20pts)
+  - Calculer le SHA-256 du dataset (`dataset_hash`)
+  - `env::commit` toutes les assertions dans le journal
+- [ ] Tester localement avec `RISC0_DEV_MODE=1 cargo run` (fake proof, instantané)
+- [ ] Compiler le guest en .bin : `cargo risczero build`
+
+#### A3. Soumettre une preuve sur Boundless (30min)
+- [ ] Servir le .bin via un tunnel ou upload sur Pinata
+- [ ] Créer le `request.yaml` avec le guest + input (dataset de test)
+- [ ] `boundless requestor submit-file request.yaml`
+- [ ] `boundless requestor status <ID>` → attendre fulfillment
+- [ ] `boundless requestor get-proof <ID>` → récupérer le receipt (journal + seal)
+- [ ] Sauvegarder le receipt JSON
+
+#### A4. Smart Escrow Wasm — vérification on-chain XRPL (1.5h)
+- [ ] Étudier le template `xrpl-risc0-starter/escrow/`
+- [ ] Écrire `escrow/src/lib.rs` :
+  - Fonction `finish()` qui reçoit la preuve dans les memos
+  - Vérifie le receipt contre l'Image ID du guest
+  - Lit le journal : vérifie `quality_score >= seuil`, `schema_valid == true`
+  - Si OK → escrow finished → preuve validée on-chain
+- [ ] Compiler en Wasm : `cargo build --target wasm32v1-none`
+- [ ] Funder un wallet sur alphanet via faucet
+- [ ] Déployer l'escrow sur alphanet
+- [ ] Soumettre la tx FinishEscrow avec la preuve dans les memos
+- [ ] Vérifier que la tx réussit → preuve validée on-chain XRPL
+
+#### A5. Remplacer le mock boundless.ts (1h)
+- [ ] Réécrire `lib/sirius/boundless.ts` :
+  - `generateQualityProof()` → appelle le binaire host Rust via `child_process` ou la CLI Boundless
+  - Attend le fulfillment, récupère le receipt
+  - Retourne le receipt réel (journal + seal + image_id)
+  - `verifyQualityProof()` → vérifie le receipt localement ou via le tx hash on-chain
+- [ ] Mettre à jour le type `BoundlessProof` avec les vrais champs (journal, seal, imageId, proofTxHash)
+- [ ] Mettre à jour `pipeline.ts` pour utiliser le vrai flow
+
+#### A6. Intégrer dans le flow MPT (30min)
+- [ ] Mettre à jour `DatasetMetadata` dans `mpt.ts` :
+  - Ajouter `zk.qualityScore`, `zk.proofTxHash`, `zk.proofNetwork`, `zk.imageId`
+  - Garder les champs existants (dataset, ipfsHash, etc.)
+- [ ] Mettre à jour la demo route pour :
+  1. Ingérer le dataset (Sirius)
+  2. Générer la preuve ZK (Boundless)
+  3. Déployer + finish le Smart Escrow (alphanet)
+  4. Minter le MPT avec le tx hash de la vérification
+- [ ] API Route `POST /api/xrpl/prove` — orchestre le flow ZK complet
+
+---
+
+### BLOC B — Bugs à corriger (code Dev 2)
+
+#### B1. Fix verify-proof (15min)
+- [ ] `api/sirius/verify-proof/route.ts` : vérifie le commitment contre lui-même → toujours true
+  - Fix : passer le digest des données réelles, pas `proof.commitment`
+
+#### B2. Fix computeDatasetDigest (15min)
+- [ ] `lib/sirius/boundless.ts` : ne hash que les 32 premières lignes
+  - Fix : hasher toutes les lignes (ou un sample représentatif plus grand)
+
+#### B3. Fix detectWatermark (15min)
+- [ ] `lib/sirius/watermark.ts` : ne détecte pas la perturbation numérique
+  - Fix : ajouter la détection des micro-perturbations numériques
+
+---
+
+### BLOC C — Frontend pages (si temps restant)
+
+Ce bloc est moins prioritaire que A et B. Le jury voit l'UI mais le différenciateur c'est le ZK.
+
+#### C1. Page Provider Dashboard
+- [ ] Upload dataset (formulaire + drag & drop)
+- [ ] Affiche les datasets déposés avec quality score ZK
+- [ ] Suivi des revenus (intérêts reçus)
+
+#### C2. Page Marketplace / Vault
+- [ ] Browse les datasets disponibles (cards)
+- [ ] Affiche le quality score + certificat ZK vérifiable
+- [ ] Bouton "Request Loan"
+
+#### C3. Page Borrower Dashboard
+- [ ] Loan actif avec status (PENDING → ACTIVE → REPAYING → COMPLETED)
+- [ ] Accès au dataset (download ou query)
+- [ ] Repayment tracker (montant dû, payé, restant)
+
+#### C4. Page Admin (rôle loanbroker)
+- [ ] Émettre credentials (certifier provider, KYB borrower)
+- [ ] Créer vault / lending pool
+- [ ] Voir tous les loans + trigger default
+- [ ] Distribuer les intérêts
+
+#### C5. Sidebar conditionnel
+- [ ] Afficher les liens selon `useWalletStore().role`
+- [ ] Provider voit : Dashboard, My Datasets
+- [ ] Borrower voit : Dashboard, Marketplace, My Loans
+- [ ] LoanBroker voit : tout + Admin
+
+#### C6. Composants UI
+- [ ] Dataset card (nom, score, catégorie, ZK badge)
+- [ ] Loan status badge (colored par état)
+- [ ] Quality certificate viewer (modal avec détails ZK)
+- [ ] Repayment progress bar
+
+---
+
+### BLOC D — Polish & Démo
+
+#### D1. Dataset de démo (15min)
+- [ ] 1000 rows instruction-tuning réalistes
+- [ ] Format JSONL : instruction, response, category, difficulty, score
+
+#### D2. Test end-to-end (30min)
+- [ ] Provider : upload → ZK proof → mint MPT → deposit vault
+- [ ] Borrower : browse → request loan → accès → repay
+- [ ] Expiration : clé révoquée, MPT retourne au vault
+- [ ] Vérification : prouver que le ZK score est authentique
+
+#### D3. Pitch (30min)
+- [ ] Script 3min
+- [ ] Anticiper Q&A (Boundless, XRPL, Sirius, scoring, cross-chain)
+- [ ] Screenshots/vidéo de backup si réseau instable
+
+---
+
+## Ordre d'exécution recommandé
+
+```
+A1 (setup Boundless)       15min  ← MAINTENANT
+A2 (guest program Rust)    2h
+A3 (soumettre preuve)      30min
+A4 (Smart Escrow Wasm)     1.5h
+A5 (remplacer mock)        1h
+A6 (intégrer MPT)          30min
+─── checkpoint : ZK proof end-to-end fonctionne ───
+B1-B3 (fix bugs Dev 2)     45min
+C1-C6 (pages frontend)     3-4h  ← si temps
+D1-D3 (polish + démo)      1h
+```
+
+**Total estimé : 8-10h**
+**Priorité absolue : Bloc A (ZK proof on-chain)**
+
+---
+
+## Risques
+
+| Risque | Impact | Plan B |
+|--------|--------|--------|
+| Guest program trop lent dans le zkVM | Moyen | Réduire le dataset à 100 rows pour la preuve |
+| Boundless proving timeout | Faible | Preuve pré-générée avant la démo |
+| Smart Escrow deploy échoue sur alphanet | Moyen | Stocker le receipt sur IPFS, référencer dans MPT (pas de vérification on-chain) |
+| alphanet down | Moyen | Fallback devnet standard (sans ZK on-chain) |
+| xrpl.js incompatible avec alphanet | Moyen | Tester avant de tout migrer, garder la version actuelle si ça marche |
+| Temps insuffisant pour le front | Élevé | Focus sur 1 page provider + 1 page borrower minimum |
+| Faucet alphanet down | Moyen | Contacter l'équipe au hackathon |
+
+---
+
+## Critères de succès
+
+- [ ] **Preuve ZK Boundless vérifiée on-chain XRPL** (Smart Escrow sur alphanet)
+- [ ] Quality score calculé dans le zkVM et affiché dans le MPT
+- [ ] Flow end-to-end : provider deposit → borrower access → expiry
+- [ ] Au moins 1 tx XRPL réelle avec ZK proof
+- [ ] Dataset encrypté et stocké sur IPFS
+- [ ] UI qui raconte l'histoire en 3min
+- [ ] Réponses solides sur l'archi pendant Q&A
 
 ---
 
@@ -241,27 +276,22 @@ src/types/xrpl-connect.d.ts
 
 ```
 1. "Je suis un data provider. J'ai un dataset d'instruction tuning."
-   → Upload → encryption → ZK cert → MPT minté → déposé dans le vault
+   → Upload → encryption → preuve ZK via Boundless → quality score prouvé
+   → Vérifié on-chain XRPL via Smart Escrow → MPT minté → déposé dans le vault
 
-2. "Je suis un AI startup. Je veux ce dataset pour 30 jours."
-   → Browse vault → voir quality cert → request loan → payer
+2. "La qualité est prouvée cryptographiquement. Score : 88/100."
+   → Montrer le Smart Escrow on-chain → preuve vérifiée → trustless
+   → Le score est calculé dans le zkVM, personne ne peut le falsifier
 
-3. "J'ai accès. Voici mes données."
-   → Dashboard borrower → dataset accessible → watermarked
+3. "Je suis un AI startup. Je veux ce dataset pour 30 jours."
+   → Browse vault → voir quality score ZK vérifié → request loan → payer
 
-4. "Le loan expire."
+4. "J'ai accès. Voici mes données."
+   → Dashboard borrower → dataset décrypté → watermarked
+
+5. "Le loan expire."
    → Accès révoqué → provider reçoit ses intérêts → MPT retourne au vault
 
-5. "Et si je leak les données ?"
-   → Montrer le watermark unique → traçabilité
+6. "Et si je leak les données ?"
+   → Watermark unique → traçabilité → credential blacklisté
 ```
-
----
-
-## Critères de succès
-
-- [ ] Flow end-to-end fonctionnel (provider deposit → borrower access → expiry)
-- [x] Au moins 1 tx XRPL réelle visible dans la démo (MPT mint) → **Route démo complète**
-- [ ] Dataset réellement encrypté et stocké sur IPFS
-- [ ] UI clean qui raconte l'histoire en 3min
-- [ ] Réponses solides sur l'archi pendant Q&A

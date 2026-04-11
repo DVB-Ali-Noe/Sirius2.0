@@ -1,2 +1,4 @@
-export const DEVNET_WS_URL = "wss://s.devnet.rippletest.net:51233";
-export const DEVNET_JSON_RPC_URL = "https://s.devnet.rippletest.net:51234";
+export const XRPL_WS_URL = "wss://alphanet.nerdnest.xyz";
+export const XRPL_JSON_RPC_URL = "https://alphanet.nerdnest.xyz:51234";
+export const XRPL_FAUCET_URL = "https://alphanet.faucet.nerdnest.xyz/accounts";
+export const XRPL_NETWORK_ID = 21565;

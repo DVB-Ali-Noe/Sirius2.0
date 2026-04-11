@@ -1,5 +1,5 @@
 import { Client } from "xrpl";
-import { DEVNET_WS_URL } from "./constants";
+import { XRPL_WS_URL } from "./constants";
 
 let client: Client | null = null;
 let connecting: Promise<Client> | null = null;
@@ -15,7 +15,7 @@ export async function getClient(): Promise<Client> {
       client = null;
     }
 
-    const newClient = new Client(DEVNET_WS_URL);
+    const newClient = new Client(XRPL_WS_URL);
     try {
       await newClient.connect();
       client = newClient;

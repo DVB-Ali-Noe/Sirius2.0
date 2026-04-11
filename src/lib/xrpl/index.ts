@@ -41,4 +41,4 @@ export { subscribeToAccounts, onXRPLEvent, unsubscribeAll } from "./events";
 export { makeRepayment, getRepaymentInfo } from "./repayment";
 export { calculateInterest, distributeInterest } from "./distribution";
 export { toHex, parseXrpToDrops } from "./utils";
-export { DEVNET_WS_URL, DEVNET_JSON_RPC_URL } from "./constants";
+export { XRPL_WS_URL, XRPL_JSON_RPC_URL, XRPL_FAUCET_URL, XRPL_NETWORK_ID } from "./constants";
