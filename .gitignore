@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build
+.nuxt/
+.output/
+.next/
+out/
+dist/
+
+# Env
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Keys / secrets
+*.pem
+*.key
+*.seed
+
+# IPFS local
+.ipfs/
+
+# Coverage / tests
+coverage/
+.nyc_output/
+
+# Next.js
+next-env.d.ts
+
+# pnpm
+pnpm-lock.yaml
+
