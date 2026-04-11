@@ -17,7 +17,12 @@ interface WalletState {
 
 function detectRole(address: string): WalletRole {
   const loanBrokerAddress = process.env.NEXT_PUBLIC_LOANBROKER_ADDRESS;
+  const providerAddress = process.env.NEXT_PUBLIC_PROVIDER_ADDRESS;
+  const borrowerAddress = process.env.NEXT_PUBLIC_BORROWER_ADDRESS;
+
   if (loanBrokerAddress && address === loanBrokerAddress) return "loanbroker";
+  if (providerAddress && address === providerAddress) return "provider";
+  if (borrowerAddress && address === borrowerAddress) return "borrower";
   return null;
 }
 
