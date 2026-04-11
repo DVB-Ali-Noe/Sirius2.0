@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useWalletStore } from "@/stores/wallet";
+import { DEVNET_JSON_RPC_URL } from "@/lib/xrpl/constants";
 
 interface Credential {
   credentialType: string;
@@ -11,7 +12,7 @@ interface Credential {
 
 async function fetchCredentials(address: string): Promise<Credential[]> {
   const res = await fetch(
-    `https://s.devnet.rippletest.net:51234`,
+    DEVNET_JSON_RPC_URL,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -31,11 +32,16 @@ async function fetchCredentials(address: string): Promise<Credential[]> {
   const data = await res.json();
   const objects = data.result?.account_objects ?? [];
 
-  return objects.map((obj: { CredentialType: string; Issuer: string; Subject: string }) => ({
-    credentialType: Buffer.from(obj.CredentialType, "hex").toString("utf-8"),
-    issuer: obj.Issuer,
-    subject: obj.Subject,
-  }));
+  return objects.map((obj: { CredentialType?: string; Issuer: string; Subject: string }) => {
+    let credentialType = obj.CredentialType ?? "";
+    try {
+      const bytes = new Uint8Array(
+        (credentialType.match(/.{1,2}/g) ?? []).map((b) => parseInt(b, 16))
+      );
+      credentialType = new TextDecoder().decode(bytes);
+    } catch {}
+    return { credentialType, issuer: obj.Issuer, subject: obj.Subject };
+  });
 }
 
 export function useWalletCredentials() {

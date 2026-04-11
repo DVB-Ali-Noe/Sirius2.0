@@ -6,16 +6,22 @@ export interface FundedWallet {
   balance: number;
 }
 
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing environment variable: ${name}`);
+  return value;
+}
+
 export function getProvider(): Wallet {
-  return Wallet.fromSeed(process.env.XRPL_PROVIDER_SEED!);
+  return Wallet.fromSeed(requireEnv("XRPL_PROVIDER_SEED"));
 }
 
 export function getBorrower(): Wallet {
-  return Wallet.fromSeed(process.env.XRPL_BORROWER_SEED!);
+  return Wallet.fromSeed(requireEnv("XRPL_BORROWER_SEED"));
 }
 
 export function getLoanBroker(): Wallet {
-  return Wallet.fromSeed(process.env.XRPL_LOANBROKER_SEED!);
+  return Wallet.fromSeed(requireEnv("XRPL_LOANBROKER_SEED"));
 }
 
 export function getDemoWallets() {

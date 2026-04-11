@@ -1,5 +1,6 @@
 import { Wallet, CredentialCreate, CredentialAccept } from "xrpl";
 import { getClient } from "./client";
+import { toHex } from "./utils";
 
 const CREDENTIAL_TYPES = {
   DataProviderCertified: "DataProviderCertified",
@@ -9,10 +10,6 @@ const CREDENTIAL_TYPES = {
 } as const;
 
 type CredentialTypeName = keyof typeof CREDENTIAL_TYPES;
-
-function toHex(str: string): string {
-  return Buffer.from(str).toString("hex").toUpperCase();
-}
 
 export async function issueCredential(
   issuer: Wallet,

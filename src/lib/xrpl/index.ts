@@ -38,5 +38,7 @@ export {
   type LoanRecord,
 } from "./loan-state";
 export { subscribeToAccounts, onXRPLEvent, unsubscribeAll } from "./events";
-export { makeRepayment, getRepaymentInfo, checkAndTriggerDefault } from "./repayment";
+export { makeRepayment, getRepaymentInfo } from "./repayment";
 export { calculateInterest, distributeInterest } from "./distribution";
+export { toHex, parseXrpToDrops } from "./utils";
+export { DEVNET_WS_URL, DEVNET_JSON_RPC_URL } from "./constants";

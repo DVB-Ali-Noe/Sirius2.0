@@ -1,13 +1,10 @@
 import { Wallet, PermissionedDomainSet } from "xrpl";
 import { getClient } from "./client";
+import { toHex } from "./utils";
 
 interface CredentialRequirement {
   issuer: string;
   credentialType: string;
-}
-
-function toHex(str: string): string {
-  return Buffer.from(str).toString("hex").toUpperCase();
 }
 
 export async function createPermissionedDomain(

@@ -1,6 +1,7 @@
 import { Wallet, Payment } from "xrpl";
 import { getClient } from "./client";
 import { getLoan } from "./loan-state";
+import { parseXrpToDrops } from "./utils";
 
 interface ShareHolder {
   address: string;
@@ -40,7 +41,7 @@ export async function distributeInterest(
     const amount = totalInterest * (holder.sharePercent / 100);
     if (amount <= 0) continue;
 
-    const drops = String(Math.floor(amount * 1_000_000));
+    const drops = parseXrpToDrops(String(amount));
 
     const tx: Payment = {
       TransactionType: "Payment",

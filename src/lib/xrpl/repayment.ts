@@ -1,6 +1,7 @@
 import { Wallet, Payment } from "xrpl";
 import { getClient } from "./client";
 import { addPayment, getLoan, checkDefault, type LoanRecord } from "./loan-state";
+import { parseXrpToDrops } from "./utils";
 
 export interface RepaymentInfo {
   totalDue: number;
@@ -56,7 +57,7 @@ export async function makeRepayment(
     TransactionType: "Payment",
     Account: borrower.classicAddress,
     Destination: loanBrokerAddress,
-    Amount: String(Math.floor(parseFloat(amountXrp) * 1_000_000)),
+    Amount: parseXrpToDrops(amountXrp),
   };
 
   const result = await client.submitAndWait(tx, { wallet: borrower });
@@ -69,6 +70,3 @@ export async function makeRepayment(
   });
 }
 
-export function checkAndTriggerDefault(loanId: string): boolean {
-  return checkDefault(loanId);
-}

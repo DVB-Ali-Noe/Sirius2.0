@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getDemoWallets } from "@/lib/xrpl";
 import { subscribeToAccounts, onXRPLEvent, type EventType } from "@/lib/xrpl/events";
+import { requireAuth, apiError } from "@/lib/api-utils";
 
 const eventLog: Array<{ type: string; timestamp: number; data: unknown }> = [];
 let initialized = false;
@@ -42,8 +43,14 @@ async function initEventListeners() {
   initialized = true;
 }
 
-export async function GET() {
-  await initEventListeners();
+export async function GET(request: NextRequest) {
+  const authErr = requireAuth(request);
+  if (authErr) return authErr;
 
-  return NextResponse.json({ events: eventLog });
+  try {
+    await initEventListeners();
+    return NextResponse.json({ events: eventLog });
+  } catch (error) {
+    return apiError(error);
+  }
 }

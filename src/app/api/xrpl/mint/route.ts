@@ -7,17 +7,29 @@ import {
   getLoanBroker,
   type DatasetMetadata,
 } from "@/lib/xrpl";
+import { requireAuth, apiError, validationError } from "@/lib/api-utils";
 
 export async function POST(request: NextRequest) {
-  const body = (await request.json()) as { metadata: DatasetMetadata };
+  const authErr = requireAuth(request);
+  if (authErr) return authErr;
 
-  const provider = getProvider();
-  const loanBroker = getLoanBroker();
+  try {
+    const body = (await request.json()) as { metadata?: DatasetMetadata };
 
-  const { mptIssuanceId } = await mintDatasetMPT(provider, body.metadata);
+    if (!body.metadata?.ipfsHash || !body.metadata?.dataset?.name) {
+      return validationError("metadata (ipfsHash, dataset.name required)");
+    }
 
-  await holderOptInMPT(loanBroker, mptIssuanceId);
-  await authorizeMPTHolder(provider, mptIssuanceId, loanBroker.classicAddress);
+    const provider = getProvider();
+    const loanBroker = getLoanBroker();
 
-  return NextResponse.json({ mptIssuanceId });
+    const { mptIssuanceId } = await mintDatasetMPT(provider, body.metadata);
+
+    await holderOptInMPT(loanBroker, mptIssuanceId);
+    await authorizeMPTHolder(provider, mptIssuanceId, loanBroker.classicAddress);
+
+    return NextResponse.json({ mptIssuanceId });
+  } catch (error) {
+    return apiError(error);
+  }
 }

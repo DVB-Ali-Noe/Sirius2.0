@@ -30,13 +30,16 @@ export function WalletConnector() {
   useEffect(() => {
     const manager = getWalletManager();
 
-    manager.on("connect", (account) => {
+    const onConnect = (account: { address: string; network?: { name?: string } }) => {
       setConnected(account.address, account.network?.name ?? "devnet");
-    });
+    };
 
-    manager.on("disconnect", () => {
+    const onDisconnect = () => {
       setDisconnected();
-    });
+    };
+
+    manager.on("connect", onConnect);
+    manager.on("disconnect", onDisconnect as () => void);
 
     const setup = async () => {
       await customElements.whenDefined("xrpl-wallet-connector");
@@ -48,7 +51,8 @@ export function WalletConnector() {
     setup();
 
     return () => {
-      manager.disconnect();
+      manager.off("connect", onConnect as unknown as (...args: unknown[]) => void);
+      manager.off("disconnect", onDisconnect as unknown as (...args: unknown[]) => void);
     };
   }, [setConnected, setDisconnected]);
 

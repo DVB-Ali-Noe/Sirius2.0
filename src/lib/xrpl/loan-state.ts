@@ -77,12 +77,11 @@ export function addPayment(loanId: string, payment: PaymentRecord): LoanRecord {
   loan.payments.push(payment);
 
   if (loan.status === "ACTIVE") {
-    loan.status = "REPAYING";
+    transitionLoan(loanId, "REPAYING");
   }
 
   if (loan.payments.length >= loan.paymentTotal) {
-    loan.status = "COMPLETED";
-    loan.completedAt = Date.now();
+    transitionLoan(loanId, "COMPLETED");
   }
 
   return loan;
@@ -102,8 +101,7 @@ export function checkDefault(loanId: string): boolean {
     loan.activatedAt + expectedPayments * loan.paymentInterval * 1000 + graceMs;
 
   if (loan.payments.length < expectedPayments && now > deadlineForNextPayment) {
-    loan.status = "DEFAULTED";
-    loan.completedAt = now;
+    transitionLoan(loanId, "DEFAULTED");
     return true;
   }
 

@@ -265,8 +265,8 @@ export default function Home() {
         </div>
 
         <div className="mt-20 flex flex-col items-center justify-center gap-16 md:mt-28 md:flex-row md:gap-24 lg:gap-32">
-          <AvatarCard name="Armand SECHON" image="/images/Nft-armand.png" imageStyle="" x="https://x.com/STOOOKEEE" linkedin="https://www.linkedin.com/in/armand-sechon/" github="https://github.com/STOOOKEEE" />
-          <AvatarCard name="Noe WALES" image="/images/avatar-noe.png" imageStyle="object-[center_15%]" x="https://x.com/nooeeww" linkedin="https://www.linkedin.com/in/noe-w" github="https://github.com/CHAAIISE" />
+          <AvatarCard name="Ali BEN YEZZA" image="/images/image_ali.png" imageStyle="" x="https://x.com/AliBENYEZZ13187" linkedin="https://www.linkedin.com/in/ali-ben-yezza/" github="https://github.com/alibenyezza" />
+          <AvatarCard name="Noe WALES" image="/images/avatar-noe.png" imageStyle="object-[center_15%]" x="https://x.com/nooeeww" linkedin="https://www.linkedin.com/in/noé-w" github="https://github.com/CHAAIISE" />
         </div>
       </section>
     </div>
