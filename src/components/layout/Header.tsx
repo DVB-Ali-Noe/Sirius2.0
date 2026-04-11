@@ -2,6 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { WalletConnector } from "@/components/wallet/wallet-connector"
+import { ConnectButton } from "@/components/wallet/connect-button"
 
 export function TopBar({ onMenuClick, onMenuHover }: { onMenuClick: () => void; onMenuHover?: () => void }) {
   const pathname = usePathname()
@@ -36,10 +38,9 @@ export function TopBar({ onMenuClick, onMenuHover }: { onMenuClick: () => void; 
         <div className="flex-1" />
       )}
 
-      <div className="shrink-0">
-        <button className="cursor-pointer rounded-full border border-white/80 bg-white/5 px-7 py-2.5 text-sm uppercase tracking-widest text-white backdrop-blur-sm transition-all duration-200">
-          Connect
-        </button>
+      <div className="shrink-0 flex items-center gap-3">
+        <ConnectButton />
+        <WalletConnector />
       </div>
     </header>
   )
