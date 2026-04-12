@@ -6,6 +6,8 @@ import { motion } from "framer-motion"
 import { Sidebar, SIDEBAR_COLLAPSED, SIDEBAR_EXPANDED } from "@/components/layout/Sidebar"
 import { TopBar } from "@/components/layout/Header"
 import { Footer, FOOTER_H } from "@/components/layout/Footer"
+import { useWalletStore } from "@/stores/wallet"
+import { getWalletManager } from "@/lib/wallet/manager"
 
 const TOPBAR_H = 80
 
@@ -176,6 +178,8 @@ export default function AppLayout({
 
   useEffect(() => {
     if (!dezooming) return
+    useWalletStore.getState().setDisconnected()
+    getWalletManager().disconnect().catch(() => {})
     delete (window as any).__blobTargetZ;
     (window as any).__blobDezoom = {
       active: true,

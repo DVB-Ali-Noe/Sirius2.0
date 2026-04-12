@@ -73,7 +73,8 @@ export function ConnectButton() {
           <div className="border-t border-border" />
           <button
             onClick={() => {
-              getWalletManager().disconnect();
+              useWalletStore.getState().setDisconnected();
+              getWalletManager().disconnect().catch(() => {});
               setOpen(false);
             }}
             className="flex w-full cursor-pointer items-center gap-2 px-4 py-3 text-left text-sm text-negative transition-colors hover:bg-white/5"

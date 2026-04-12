@@ -32,7 +32,7 @@ function seededRandom(seed: string, index: number): number {
     .update(seed)
     .update(String(index))
     .digest();
-  return h.readUInt32BE(0) / 0xffffffff;
+  return h.readUInt32BE(0) / 0x100000000;
 }
 
 function pickIndices(seed: string, totalRows: number, count: number): number[] {
@@ -56,8 +56,9 @@ function applyRowWatermark(row: unknown, seed: string, index: number): unknown {
 
   for (const [key, value] of entries) {
     if (typeof value === "number") {
+      const base = Math.round(value * 1e6) / 1e6;
       const noise = (seededRandom(seed, index * 31 + key.length) - 0.5) * 1e-6;
-      (clone as Record<string, unknown>)[key] = value + noise;
+      (clone as Record<string, unknown>)[key] = base + noise;
       return clone;
     }
   }
@@ -112,7 +113,7 @@ export function detectWatermark(
     let matches = 0;
     for (const idx of indices) {
       const row = suspectRows[idx];
-      if (row && typeof row === "object" && hasWatermarkMarker(row, candidate.seed)) {
+      if (row && typeof row === "object" && isWatermarkedRow(row, candidate.seed, idx)) {
         matches++;
       }
     }
@@ -124,14 +125,25 @@ export function detectWatermark(
   return null;
 }
 
-function hasWatermarkMarker(row: unknown, seed: string): boolean {
-  if (!row || typeof row !== "object") return false;
+function stripRow(row: unknown): unknown {
+  if (!row || typeof row !== "object") return row;
   const record = row as Record<string, unknown>;
-
-  if (typeof record.__wm === "string" && record.__wm === seed.slice(0, 8)) return true;
-
-  for (const v of Object.values(record)) {
-    if (typeof v === "string" && v.includes("\u200B")) return true;
+  const clean: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(record)) {
+    if (key === "__wm") continue;
+    if (typeof value === "number") {
+      clean[key] = Math.round(value * 1e6) / 1e6;
+    } else if (typeof value === "string") {
+      clean[key] = value.replace(/\u200B/g, "");
+    } else {
+      clean[key] = value;
+    }
   }
-  return false;
+  return clean;
+}
+
+function isWatermarkedRow(row: unknown, seed: string, index: number): boolean {
+  const cleaned = stripRow(row);
+  const reWatermarked = applyRowWatermark(cleaned, seed, index);
+  return JSON.stringify(reWatermarked) === JSON.stringify(row);
 }

@@ -24,6 +24,9 @@ export async function POST(request: NextRequest) {
     if (!Array.isArray(body.rows) || body.rows.length === 0) {
       return validationError("rows (non-empty array)");
     }
+    if (body.rows.length > 10000) {
+      return validationError("rows (max 10000)");
+    }
     if (!body.schema) return validationError("schema");
 
     const result = await ingestDataset({

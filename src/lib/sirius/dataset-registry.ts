@@ -29,6 +29,7 @@ export interface DatasetRecord {
   version: string;
   createdAt: number;
   mptIssuanceId?: string;
+  vaultId?: string;
 }
 
 const datasets = new Map<string, DatasetRecord>();

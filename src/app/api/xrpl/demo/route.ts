@@ -14,7 +14,7 @@ import {
 } from "@/lib/xrpl";
 import { createLoanRecord, transitionLoan } from "@/lib/xrpl/loan-state";
 import { subscribeToAccounts } from "@/lib/xrpl/events";
-import { ingestDataset, attachMpt, type DatasetDescription } from "@/lib/sirius";
+import { ingestDataset, attachMpt, getDataset, type DatasetDescription } from "@/lib/sirius";
 import {
   activateLoanAccess,
   installXrplBridge,
@@ -140,6 +140,8 @@ export async function POST(request: NextRequest) {
     steps.push({ step: "lending_pool_created", result: { vaultId, domainId } });
 
     await depositToVault(provider, vaultId, mptIssuanceId, "1");
+    const dsRecord = getDataset(ingestion.datasetId);
+    if (dsRecord) dsRecord.vaultId = vaultId;
     steps.push({ step: "mpt_deposited", result: { vaultId } });
 
     await subscribeToAccounts([

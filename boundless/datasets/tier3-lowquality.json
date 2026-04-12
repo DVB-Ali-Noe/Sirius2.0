@@ -1,0 +1,1975 @@
+[
+  {
+    "id": 0,
+    "instruction": "",
+    "response": "Here is a detailed explanation for task #0. The main concepts involve reasoning principles applied to scenario 0.",
+    "category": "reasoning",
+    "difficulty": "easy",
+    "score": 0.7,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 1,
+    "instruction": "Given a coding task about topic #1, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #1. The main concepts involve coding principles applied to scenario 0.",
+    "category": "coding",
+    "difficulty": "medium",
+    "score": 0.71,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 2,
+    "instruction": "Given a math task about topic #2, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #2. The main concepts involve math principles applied to scenario 0.",
+    "category": "math",
+    "difficulty": "hard",
+    "score": 0.72,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 3,
+    "instruction": "Given a knowledge task about topic #3, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #3. The main concepts involve knowledge principles applied to scenario 0.",
+    "category": "knowledge",
+    "difficulty": "easy",
+    "score": 0.73,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 4,
+    "instruction": "Given a writing task about topic #4, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #4. The main concepts involve writing principles applied to scenario 0.",
+    "category": "writing",
+    "difficulty": "medium",
+    "score": 0.74,
+    "language": "en"
+  },
+  {
+    "id": 5,
+    "instruction": "Given a analysis task about topic #5, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #5. The main concepts involve analysis principles applied to scenario 0.",
+    "category": "analysis",
+    "difficulty": "hard",
+    "score": 0.75,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 6,
+    "instruction": "Given a creative task about topic #6, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #6. The main concepts involve creative principles applied to scenario 0.",
+    "category": "creative",
+    "difficulty": "easy",
+    "score": 0.76,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 7,
+    "instruction": "Given a reasoning task about topic #7, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #7. The main concepts involve reasoning principles applied to scenario 0.",
+    "category": "reasoning",
+    "difficulty": "medium",
+    "score": 0.77,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 8,
+    "instruction": "Given a coding task about topic #8, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #8. The main concepts involve coding principles applied to scenario 0.",
+    "category": "coding",
+    "difficulty": "hard",
+    "score": 0.78,
+    "language": "",
+    "source": "augmented"
+  },
+  {
+    "id": 9,
+    "instruction": "Given a math task about topic #9, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #9. The main concepts involve math principles applied to scenario 0.",
+    "category": "math",
+    "difficulty": "easy",
+    "score": 0.79,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 10,
+    "instruction": "Given a knowledge task about topic #10, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #10. The main concepts involve knowledge principles applied to scenario 1.",
+    "category": "knowledge",
+    "difficulty": "medium",
+    "score": 0.8,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 11,
+    "instruction": "Given a writing task about topic #11, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #11. The main concepts involve writing principles applied to scenario 1.",
+    "category": "writing",
+    "difficulty": "hard",
+    "score": 0.81,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 12,
+    "instruction": "Given a analysis task about topic #12, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #12. The main concepts involve analysis principles applied to scenario 1.",
+    "category": "analysis",
+    "difficulty": "easy",
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 13,
+    "instruction": "Given a creative task about topic #13, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #13. The main concepts involve creative principles applied to scenario 1.",
+    "category": "creative",
+    "difficulty": "medium",
+    "score": 0.83,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 14,
+    "instruction": "Given a reasoning task about topic #14, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #14. The main concepts involve reasoning principles applied to scenario 1.",
+    "category": "reasoning",
+    "difficulty": "hard",
+    "score": 0.84,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 15,
+    "instruction": "Given a coding task about topic #15, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #15. The main concepts involve coding principles applied to scenario 1.",
+    "category": "coding",
+    "difficulty": "easy",
+    "score": 0.85,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 16,
+    "instruction": "Given a math task about topic #16, explain the key concepts and provide a step-by-step solution.",
+    "category": "math",
+    "difficulty": "medium",
+    "score": 0.86,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 17,
+    "instruction": "Given a knowledge task about topic #17, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #17. The main concepts involve knowledge principles applied to scenario 1.",
+    "category": "knowledge",
+    "difficulty": "hard",
+    "score": 0.87,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 18,
+    "instruction": "Given a writing task about topic #18, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #18. The main concepts involve writing principles applied to scenario 1.",
+    "category": "writing",
+    "difficulty": "easy",
+    "score": 0.88,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 19,
+    "instruction": "Given a analysis task about topic #19, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #19. The main concepts involve analysis principles applied to scenario 1.",
+    "category": "analysis",
+    "difficulty": "medium",
+    "score": 0.89,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 20,
+    "instruction": "",
+    "response": "Here is a detailed explanation for task #20. The main concepts involve creative principles applied to scenario 2.",
+    "category": "creative",
+    "difficulty": "hard",
+    "score": 0.9,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 21,
+    "instruction": "Given a reasoning task about topic #21, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #21. The main concepts involve reasoning principles applied to scenario 2.",
+    "category": "reasoning",
+    "difficulty": "easy",
+    "score": 0.91,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 22,
+    "instruction": "Given a coding task about topic #22, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #22. The main concepts involve coding principles applied to scenario 2.",
+    "category": "coding",
+    "difficulty": "medium",
+    "score": 0.92,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 23,
+    "instruction": "Given a math task about topic #23, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #23. The main concepts involve math principles applied to scenario 2.",
+    "category": "math",
+    "difficulty": "hard",
+    "score": 0.93,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 24,
+    "instruction": "Given a knowledge task about topic #24, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #24. The main concepts involve knowledge principles applied to scenario 2.",
+    "category": "knowledge",
+    "difficulty": "easy",
+    "score": 0.94,
+    "language": "en"
+  },
+  {
+    "id": 25,
+    "instruction": "Given a writing task about topic #25, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #25. The main concepts involve writing principles applied to scenario 2.",
+    "category": "writing",
+    "difficulty": "medium",
+    "score": 0.95,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 26,
+    "instruction": "Given a analysis task about topic #26, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #26. The main concepts involve analysis principles applied to scenario 2.",
+    "category": "analysis",
+    "difficulty": "hard",
+    "score": 0.96,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 27,
+    "instruction": "Given a creative task about topic #27, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #27. The main concepts involve creative principles applied to scenario 2.",
+    "category": "creative",
+    "difficulty": "easy",
+    "score": 0.97,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 28,
+    "instruction": "Given a reasoning task about topic #28, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #28. The main concepts involve reasoning principles applied to scenario 2.",
+    "category": "reasoning",
+    "difficulty": "medium",
+    "score": 0.98,
+    "language": "",
+    "source": "synthetic"
+  },
+  {
+    "id": 29,
+    "instruction": "Given a coding task about topic #29, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #29. The main concepts involve coding principles applied to scenario 2.",
+    "category": "coding",
+    "difficulty": "hard",
+    "score": 0.99,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 30,
+    "instruction": "Given a math task about topic #30, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #30. The main concepts involve math principles applied to scenario 3.",
+    "category": "math",
+    "difficulty": "easy",
+    "score": 0.7,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 31,
+    "instruction": "Given a knowledge task about topic #31, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #31. The main concepts involve knowledge principles applied to scenario 3.",
+    "category": "knowledge",
+    "difficulty": "medium",
+    "score": 0.71,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 32,
+    "instruction": "Given a writing task about topic #32, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #32. The main concepts involve writing principles applied to scenario 3.",
+    "category": "writing",
+    "difficulty": "hard",
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 33,
+    "instruction": "Given a analysis task about topic #33, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #33. The main concepts involve analysis principles applied to scenario 3.",
+    "category": "analysis",
+    "difficulty": "easy",
+    "score": 0.73,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 34,
+    "instruction": "Given a creative task about topic #34, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #34. The main concepts involve creative principles applied to scenario 3.",
+    "category": "creative",
+    "difficulty": "medium",
+    "score": 0.74,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 35,
+    "instruction": "Given a reasoning task about topic #35, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #35. The main concepts involve reasoning principles applied to scenario 3.",
+    "category": "reasoning",
+    "difficulty": "hard",
+    "score": 0.75,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 36,
+    "instruction": "Given a coding task about topic #36, explain the key concepts and provide a step-by-step solution.",
+    "category": "coding",
+    "difficulty": "easy",
+    "score": 0.76,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 37,
+    "instruction": "Given a math task about topic #37, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #37. The main concepts involve math principles applied to scenario 3.",
+    "category": "math",
+    "difficulty": "medium",
+    "score": 0.77,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 38,
+    "instruction": "Given a knowledge task about topic #38, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #38. The main concepts involve knowledge principles applied to scenario 3.",
+    "category": "knowledge",
+    "difficulty": "hard",
+    "score": 0.78,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 39,
+    "instruction": "Given a writing task about topic #39, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #39. The main concepts involve writing principles applied to scenario 3.",
+    "category": "writing",
+    "difficulty": "easy",
+    "score": 0.79,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 40,
+    "instruction": "",
+    "response": "Here is a detailed explanation for task #40. The main concepts involve analysis principles applied to scenario 4.",
+    "category": "analysis",
+    "difficulty": "medium",
+    "score": 0.8,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 41,
+    "instruction": "Given a creative task about topic #41, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #41. The main concepts involve creative principles applied to scenario 4.",
+    "category": "creative",
+    "difficulty": "hard",
+    "score": 0.81,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 42,
+    "instruction": "Given a reasoning task about topic #42, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #42. The main concepts involve reasoning principles applied to scenario 4.",
+    "category": "reasoning",
+    "difficulty": "easy",
+    "score": 0.82,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 43,
+    "instruction": "Given a coding task about topic #43, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #43. The main concepts involve coding principles applied to scenario 4.",
+    "category": "coding",
+    "difficulty": "medium",
+    "score": 0.83,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 44,
+    "instruction": "Given a math task about topic #44, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #44. The main concepts involve math principles applied to scenario 4.",
+    "category": "math",
+    "difficulty": "hard",
+    "score": 0.84,
+    "language": "en"
+  },
+  {
+    "id": 45,
+    "instruction": "Given a knowledge task about topic #45, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #45. The main concepts involve knowledge principles applied to scenario 4.",
+    "category": "knowledge",
+    "difficulty": "easy",
+    "score": 0.85,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 46,
+    "instruction": "Given a writing task about topic #46, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #46. The main concepts involve writing principles applied to scenario 4.",
+    "category": "writing",
+    "difficulty": "medium",
+    "score": 0.86,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 47,
+    "instruction": "Given a analysis task about topic #47, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #47. The main concepts involve analysis principles applied to scenario 4.",
+    "category": "analysis",
+    "difficulty": "hard",
+    "score": 0.87,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 48,
+    "instruction": "Given a creative task about topic #48, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #48. The main concepts involve creative principles applied to scenario 4.",
+    "category": "creative",
+    "difficulty": "easy",
+    "score": 0.88,
+    "language": "",
+    "source": "human"
+  },
+  {
+    "id": 49,
+    "instruction": "Given a reasoning task about topic #49, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #49. The main concepts involve reasoning principles applied to scenario 4.",
+    "category": "reasoning",
+    "difficulty": "medium",
+    "score": 0.89,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 50,
+    "instruction": "Given a coding task about topic #50, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #50. The main concepts involve coding principles applied to scenario 5.",
+    "category": "coding",
+    "difficulty": "hard",
+    "score": 0.9,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 51,
+    "instruction": "Given a math task about topic #51, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #51. The main concepts involve math principles applied to scenario 5.",
+    "category": "math",
+    "difficulty": "easy",
+    "score": 0.91,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 52,
+    "instruction": "Given a knowledge task about topic #52, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #52. The main concepts involve knowledge principles applied to scenario 5.",
+    "category": "knowledge",
+    "difficulty": "medium",
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 53,
+    "instruction": "Given a writing task about topic #53, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #53. The main concepts involve writing principles applied to scenario 5.",
+    "category": "writing",
+    "difficulty": "hard",
+    "score": 0.93,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 54,
+    "instruction": "Given a analysis task about topic #54, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #54. The main concepts involve analysis principles applied to scenario 5.",
+    "category": "analysis",
+    "difficulty": "easy",
+    "score": 0.94,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 55,
+    "instruction": "Given a creative task about topic #55, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #55. The main concepts involve creative principles applied to scenario 5.",
+    "category": "creative",
+    "difficulty": "medium",
+    "score": 0.95,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 56,
+    "instruction": "Given a reasoning task about topic #56, explain the key concepts and provide a step-by-step solution.",
+    "category": "reasoning",
+    "difficulty": "hard",
+    "score": 0.96,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 57,
+    "instruction": "Given a coding task about topic #57, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #57. The main concepts involve coding principles applied to scenario 5.",
+    "category": "coding",
+    "difficulty": "easy",
+    "score": 0.97,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 58,
+    "instruction": "Given a math task about topic #58, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #58. The main concepts involve math principles applied to scenario 5.",
+    "category": "math",
+    "difficulty": "medium",
+    "score": 0.98,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 59,
+    "instruction": "Given a knowledge task about topic #59, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #59. The main concepts involve knowledge principles applied to scenario 5.",
+    "category": "knowledge",
+    "difficulty": "hard",
+    "score": 0.99,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 60,
+    "instruction": "",
+    "response": "Here is a detailed explanation for task #60. The main concepts involve writing principles applied to scenario 6.",
+    "category": "writing",
+    "difficulty": "easy",
+    "score": 0.7,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 61,
+    "instruction": "Given a analysis task about topic #61, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #61. The main concepts involve analysis principles applied to scenario 6.",
+    "category": "analysis",
+    "difficulty": "medium",
+    "score": 0.71,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 62,
+    "instruction": "Given a creative task about topic #62, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #62. The main concepts involve creative principles applied to scenario 6.",
+    "category": "creative",
+    "difficulty": "hard",
+    "score": 0.72,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 63,
+    "instruction": "Given a reasoning task about topic #63, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #63. The main concepts involve reasoning principles applied to scenario 6.",
+    "category": "reasoning",
+    "difficulty": "easy",
+    "score": 0.73,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 64,
+    "instruction": "Given a coding task about topic #64, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #64. The main concepts involve coding principles applied to scenario 6.",
+    "category": "coding",
+    "difficulty": "medium",
+    "score": 0.74,
+    "language": "en"
+  },
+  {
+    "id": 65,
+    "instruction": "Given a math task about topic #65, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #65. The main concepts involve math principles applied to scenario 6.",
+    "category": "math",
+    "difficulty": "hard",
+    "score": 0.75,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 66,
+    "instruction": "Given a knowledge task about topic #66, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #66. The main concepts involve knowledge principles applied to scenario 6.",
+    "category": "knowledge",
+    "difficulty": "easy",
+    "score": 0.76,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 67,
+    "instruction": "Given a writing task about topic #67, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #67. The main concepts involve writing principles applied to scenario 6.",
+    "category": "writing",
+    "difficulty": "medium",
+    "score": 0.77,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 68,
+    "instruction": "Given a analysis task about topic #68, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #68. The main concepts involve analysis principles applied to scenario 6.",
+    "category": "analysis",
+    "difficulty": "hard",
+    "score": 0.78,
+    "language": "",
+    "source": "augmented"
+  },
+  {
+    "id": 69,
+    "instruction": "Given a creative task about topic #69, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #69. The main concepts involve creative principles applied to scenario 6.",
+    "category": "creative",
+    "difficulty": "easy",
+    "score": 0.79,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 70,
+    "instruction": "Given a reasoning task about topic #70, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #70. The main concepts involve reasoning principles applied to scenario 7.",
+    "category": "reasoning",
+    "difficulty": "medium",
+    "score": 0.8,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 71,
+    "instruction": "Given a coding task about topic #71, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #71. The main concepts involve coding principles applied to scenario 7.",
+    "category": "coding",
+    "difficulty": "hard",
+    "score": 0.81,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 72,
+    "instruction": "Given a math task about topic #72, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #72. The main concepts involve math principles applied to scenario 7.",
+    "category": "math",
+    "difficulty": "easy",
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 73,
+    "instruction": "Given a knowledge task about topic #73, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #73. The main concepts involve knowledge principles applied to scenario 7.",
+    "category": "knowledge",
+    "difficulty": "medium",
+    "score": 0.83,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 74,
+    "instruction": "Given a writing task about topic #74, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #74. The main concepts involve writing principles applied to scenario 7.",
+    "category": "writing",
+    "difficulty": "hard",
+    "score": 0.84,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 75,
+    "instruction": "Given a analysis task about topic #75, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #75. The main concepts involve analysis principles applied to scenario 7.",
+    "category": "analysis",
+    "difficulty": "easy",
+    "score": 0.85,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 76,
+    "instruction": "Given a creative task about topic #76, explain the key concepts and provide a step-by-step solution.",
+    "category": "creative",
+    "difficulty": "medium",
+    "score": 0.86,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 77,
+    "instruction": "Given a reasoning task about topic #77, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #77. The main concepts involve reasoning principles applied to scenario 7.",
+    "category": "reasoning",
+    "difficulty": "hard",
+    "score": 0.87,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 78,
+    "instruction": "Given a coding task about topic #78, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #78. The main concepts involve coding principles applied to scenario 7.",
+    "category": "coding",
+    "difficulty": "easy",
+    "score": 0.88,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 79,
+    "instruction": "Given a math task about topic #79, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #79. The main concepts involve math principles applied to scenario 7.",
+    "category": "math",
+    "difficulty": "medium",
+    "score": 0.89,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 80,
+    "instruction": "",
+    "response": "Here is a detailed explanation for task #80. The main concepts involve knowledge principles applied to scenario 8.",
+    "category": "knowledge",
+    "difficulty": "hard",
+    "score": 0.9,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 81,
+    "instruction": "Given a writing task about topic #81, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #81. The main concepts involve writing principles applied to scenario 8.",
+    "category": "writing",
+    "difficulty": "easy",
+    "score": 0.91,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 82,
+    "instruction": "Given a analysis task about topic #82, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #82. The main concepts involve analysis principles applied to scenario 8.",
+    "category": "analysis",
+    "difficulty": "medium",
+    "score": 0.92,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 83,
+    "instruction": "Given a creative task about topic #83, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #83. The main concepts involve creative principles applied to scenario 8.",
+    "category": "creative",
+    "difficulty": "hard",
+    "score": 0.93,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 84,
+    "instruction": "Given a reasoning task about topic #84, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #84. The main concepts involve reasoning principles applied to scenario 8.",
+    "category": "reasoning",
+    "difficulty": "easy",
+    "score": 0.94,
+    "language": "en"
+  },
+  {
+    "id": 85,
+    "instruction": "Given a coding task about topic #85, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #85. The main concepts involve coding principles applied to scenario 8.",
+    "category": "coding",
+    "difficulty": "medium",
+    "score": 0.95,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 86,
+    "instruction": "Given a math task about topic #86, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #86. The main concepts involve math principles applied to scenario 8.",
+    "category": "math",
+    "difficulty": "hard",
+    "score": 0.96,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 87,
+    "instruction": "Given a knowledge task about topic #87, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #87. The main concepts involve knowledge principles applied to scenario 8.",
+    "category": "knowledge",
+    "difficulty": "easy",
+    "score": 0.97,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 88,
+    "instruction": "Given a writing task about topic #88, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #88. The main concepts involve writing principles applied to scenario 8.",
+    "category": "writing",
+    "difficulty": "medium",
+    "score": 0.98,
+    "language": "",
+    "source": "synthetic"
+  },
+  {
+    "id": 89,
+    "instruction": "Given a analysis task about topic #89, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #89. The main concepts involve analysis principles applied to scenario 8.",
+    "category": "analysis",
+    "difficulty": "hard",
+    "score": 0.99,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 90,
+    "instruction": "Given a creative task about topic #90, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #90. The main concepts involve creative principles applied to scenario 9.",
+    "category": "creative",
+    "difficulty": "easy",
+    "score": 0.7,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 91,
+    "instruction": "Given a reasoning task about topic #91, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #91. The main concepts involve reasoning principles applied to scenario 9.",
+    "category": "reasoning",
+    "difficulty": "medium",
+    "score": 0.71,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 92,
+    "instruction": "Given a coding task about topic #92, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #92. The main concepts involve coding principles applied to scenario 9.",
+    "category": "coding",
+    "difficulty": "hard",
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 93,
+    "instruction": "Given a math task about topic #93, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #93. The main concepts involve math principles applied to scenario 9.",
+    "category": "math",
+    "difficulty": "easy",
+    "score": 0.73,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 94,
+    "instruction": "Given a knowledge task about topic #94, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #94. The main concepts involve knowledge principles applied to scenario 9.",
+    "category": "knowledge",
+    "difficulty": "medium",
+    "score": 0.74,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 95,
+    "instruction": "Given a writing task about topic #95, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #95. The main concepts involve writing principles applied to scenario 9.",
+    "category": "writing",
+    "difficulty": "hard",
+    "score": 0.75,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 96,
+    "instruction": "Given a analysis task about topic #96, explain the key concepts and provide a step-by-step solution.",
+    "category": "analysis",
+    "difficulty": "easy",
+    "score": 0.76,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 97,
+    "instruction": "Given a creative task about topic #97, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #97. The main concepts involve creative principles applied to scenario 9.",
+    "category": "creative",
+    "difficulty": "medium",
+    "score": 0.77,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 98,
+    "instruction": "Given a reasoning task about topic #98, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #98. The main concepts involve reasoning principles applied to scenario 9.",
+    "category": "reasoning",
+    "difficulty": "hard",
+    "score": 0.78,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 99,
+    "instruction": "Given a coding task about topic #99, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #99. The main concepts involve coding principles applied to scenario 9.",
+    "category": "coding",
+    "difficulty": "easy",
+    "score": 0.79,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 100,
+    "instruction": "",
+    "response": "Here is a detailed explanation for task #100. The main concepts involve math principles applied to scenario 10.",
+    "category": "math",
+    "difficulty": "medium",
+    "score": 0.8,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 101,
+    "instruction": "Given a knowledge task about topic #101, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #101. The main concepts involve knowledge principles applied to scenario 10.",
+    "category": "knowledge",
+    "difficulty": "hard",
+    "score": 0.81,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 102,
+    "instruction": "Given a writing task about topic #102, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #102. The main concepts involve writing principles applied to scenario 10.",
+    "category": "writing",
+    "difficulty": "easy",
+    "score": 0.82,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 103,
+    "instruction": "Given a analysis task about topic #103, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #103. The main concepts involve analysis principles applied to scenario 10.",
+    "category": "analysis",
+    "difficulty": "medium",
+    "score": 0.83,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 104,
+    "instruction": "Given a creative task about topic #104, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #104. The main concepts involve creative principles applied to scenario 10.",
+    "category": "creative",
+    "difficulty": "hard",
+    "score": 0.84,
+    "language": "en"
+  },
+  {
+    "id": 105,
+    "instruction": "Given a reasoning task about topic #105, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #105. The main concepts involve reasoning principles applied to scenario 10.",
+    "category": "reasoning",
+    "difficulty": "easy",
+    "score": 0.85,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 106,
+    "instruction": "Given a coding task about topic #106, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #106. The main concepts involve coding principles applied to scenario 10.",
+    "category": "coding",
+    "difficulty": "medium",
+    "score": 0.86,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 107,
+    "instruction": "Given a math task about topic #107, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #107. The main concepts involve math principles applied to scenario 10.",
+    "category": "math",
+    "difficulty": "hard",
+    "score": 0.87,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 108,
+    "instruction": "Given a knowledge task about topic #108, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #108. The main concepts involve knowledge principles applied to scenario 10.",
+    "category": "knowledge",
+    "difficulty": "easy",
+    "score": 0.88,
+    "language": "",
+    "source": "human"
+  },
+  {
+    "id": 109,
+    "instruction": "Given a writing task about topic #109, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #109. The main concepts involve writing principles applied to scenario 10.",
+    "category": "writing",
+    "difficulty": "medium",
+    "score": 0.89,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 110,
+    "instruction": "Given a analysis task about topic #110, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #110. The main concepts involve analysis principles applied to scenario 11.",
+    "category": "analysis",
+    "difficulty": "hard",
+    "score": 0.9,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 111,
+    "instruction": "Given a creative task about topic #111, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #111. The main concepts involve creative principles applied to scenario 11.",
+    "category": "creative",
+    "difficulty": "easy",
+    "score": 0.91,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 112,
+    "instruction": "Given a reasoning task about topic #112, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #112. The main concepts involve reasoning principles applied to scenario 11.",
+    "category": "reasoning",
+    "difficulty": "medium",
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 113,
+    "instruction": "Given a coding task about topic #113, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #113. The main concepts involve coding principles applied to scenario 11.",
+    "category": "coding",
+    "difficulty": "hard",
+    "score": 0.93,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 114,
+    "instruction": "Given a math task about topic #114, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #114. The main concepts involve math principles applied to scenario 11.",
+    "category": "math",
+    "difficulty": "easy",
+    "score": 0.94,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 115,
+    "instruction": "Given a knowledge task about topic #115, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #115. The main concepts involve knowledge principles applied to scenario 11.",
+    "category": "knowledge",
+    "difficulty": "medium",
+    "score": 0.95,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 116,
+    "instruction": "Given a writing task about topic #116, explain the key concepts and provide a step-by-step solution.",
+    "category": "writing",
+    "difficulty": "hard",
+    "score": 0.96,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 117,
+    "instruction": "Given a analysis task about topic #117, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #117. The main concepts involve analysis principles applied to scenario 11.",
+    "category": "analysis",
+    "difficulty": "easy",
+    "score": 0.97,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 118,
+    "instruction": "Given a creative task about topic #118, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #118. The main concepts involve creative principles applied to scenario 11.",
+    "category": "creative",
+    "difficulty": "medium",
+    "score": 0.98,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 119,
+    "instruction": "Given a reasoning task about topic #119, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #119. The main concepts involve reasoning principles applied to scenario 11.",
+    "category": "reasoning",
+    "difficulty": "hard",
+    "score": 0.99,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 120,
+    "instruction": "",
+    "response": "Here is a detailed explanation for task #120. The main concepts involve coding principles applied to scenario 12.",
+    "category": "coding",
+    "difficulty": "easy",
+    "score": 0.7,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 121,
+    "instruction": "Given a math task about topic #121, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #121. The main concepts involve math principles applied to scenario 12.",
+    "category": "math",
+    "difficulty": "medium",
+    "score": 0.71,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 122,
+    "instruction": "Given a knowledge task about topic #122, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #122. The main concepts involve knowledge principles applied to scenario 12.",
+    "category": "knowledge",
+    "difficulty": "hard",
+    "score": 0.72,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 123,
+    "instruction": "Given a writing task about topic #123, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #123. The main concepts involve writing principles applied to scenario 12.",
+    "category": "writing",
+    "difficulty": "easy",
+    "score": 0.73,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 124,
+    "instruction": "Given a analysis task about topic #124, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #124. The main concepts involve analysis principles applied to scenario 12.",
+    "category": "analysis",
+    "difficulty": "medium",
+    "score": 0.74,
+    "language": "en"
+  },
+  {
+    "id": 125,
+    "instruction": "Given a creative task about topic #125, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #125. The main concepts involve creative principles applied to scenario 12.",
+    "category": "creative",
+    "difficulty": "hard",
+    "score": 0.75,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 126,
+    "instruction": "Given a reasoning task about topic #126, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #126. The main concepts involve reasoning principles applied to scenario 12.",
+    "category": "reasoning",
+    "difficulty": "easy",
+    "score": 0.76,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 127,
+    "instruction": "Given a coding task about topic #127, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #127. The main concepts involve coding principles applied to scenario 12.",
+    "category": "coding",
+    "difficulty": "medium",
+    "score": 0.77,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 128,
+    "instruction": "Given a math task about topic #128, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #128. The main concepts involve math principles applied to scenario 12.",
+    "category": "math",
+    "difficulty": "hard",
+    "score": 0.78,
+    "language": "",
+    "source": "augmented"
+  },
+  {
+    "id": 129,
+    "instruction": "Given a knowledge task about topic #129, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #129. The main concepts involve knowledge principles applied to scenario 12.",
+    "category": "knowledge",
+    "difficulty": "easy",
+    "score": 0.79,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 130,
+    "instruction": "Given a writing task about topic #130, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #130. The main concepts involve writing principles applied to scenario 13.",
+    "category": "writing",
+    "difficulty": "medium",
+    "score": 0.8,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 131,
+    "instruction": "Given a analysis task about topic #131, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #131. The main concepts involve analysis principles applied to scenario 13.",
+    "category": "analysis",
+    "difficulty": "hard",
+    "score": 0.81,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 132,
+    "instruction": "Given a creative task about topic #132, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #132. The main concepts involve creative principles applied to scenario 13.",
+    "category": "creative",
+    "difficulty": "easy",
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 133,
+    "instruction": "Given a reasoning task about topic #133, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #133. The main concepts involve reasoning principles applied to scenario 13.",
+    "category": "reasoning",
+    "difficulty": "medium",
+    "score": 0.83,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 134,
+    "instruction": "Given a coding task about topic #134, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #134. The main concepts involve coding principles applied to scenario 13.",
+    "category": "coding",
+    "difficulty": "hard",
+    "score": 0.84,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 135,
+    "instruction": "Given a math task about topic #135, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #135. The main concepts involve math principles applied to scenario 13.",
+    "category": "math",
+    "difficulty": "easy",
+    "score": 0.85,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 136,
+    "instruction": "Given a knowledge task about topic #136, explain the key concepts and provide a step-by-step solution.",
+    "category": "knowledge",
+    "difficulty": "medium",
+    "score": 0.86,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 137,
+    "instruction": "Given a writing task about topic #137, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #137. The main concepts involve writing principles applied to scenario 13.",
+    "category": "writing",
+    "difficulty": "hard",
+    "score": 0.87,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 138,
+    "instruction": "Given a analysis task about topic #138, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #138. The main concepts involve analysis principles applied to scenario 13.",
+    "category": "analysis",
+    "difficulty": "easy",
+    "score": 0.88,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 139,
+    "instruction": "Given a creative task about topic #139, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #139. The main concepts involve creative principles applied to scenario 13.",
+    "category": "creative",
+    "difficulty": "medium",
+    "score": 0.89,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 140,
+    "instruction": "",
+    "response": "Here is a detailed explanation for task #140. The main concepts involve reasoning principles applied to scenario 14.",
+    "category": "reasoning",
+    "difficulty": "hard",
+    "score": 0.9,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 141,
+    "instruction": "Given a coding task about topic #141, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #141. The main concepts involve coding principles applied to scenario 14.",
+    "category": "coding",
+    "difficulty": "easy",
+    "score": 0.91,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 142,
+    "instruction": "Given a math task about topic #142, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #142. The main concepts involve math principles applied to scenario 14.",
+    "category": "math",
+    "difficulty": "medium",
+    "score": 0.92,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 143,
+    "instruction": "Given a knowledge task about topic #143, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #143. The main concepts involve knowledge principles applied to scenario 14.",
+    "category": "knowledge",
+    "difficulty": "hard",
+    "score": 0.93,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 144,
+    "instruction": "Given a writing task about topic #144, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #144. The main concepts involve writing principles applied to scenario 14.",
+    "category": "writing",
+    "difficulty": "easy",
+    "score": 0.94,
+    "language": "en"
+  },
+  {
+    "id": 145,
+    "instruction": "Given a analysis task about topic #145, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #145. The main concepts involve analysis principles applied to scenario 14.",
+    "category": "analysis",
+    "difficulty": "medium",
+    "score": 0.95,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 146,
+    "instruction": "Given a creative task about topic #146, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #146. The main concepts involve creative principles applied to scenario 14.",
+    "category": "creative",
+    "difficulty": "hard",
+    "score": 0.96,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 147,
+    "instruction": "Given a reasoning task about topic #147, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #147. The main concepts involve reasoning principles applied to scenario 14.",
+    "category": "reasoning",
+    "difficulty": "easy",
+    "score": 0.97,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 148,
+    "instruction": "Given a coding task about topic #148, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #148. The main concepts involve coding principles applied to scenario 14.",
+    "category": "coding",
+    "difficulty": "medium",
+    "score": 0.98,
+    "language": "",
+    "source": "synthetic"
+  },
+  {
+    "id": 149,
+    "instruction": "Given a math task about topic #149, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #149. The main concepts involve math principles applied to scenario 14.",
+    "category": "math",
+    "difficulty": "hard",
+    "score": 0.99,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 150,
+    "instruction": "Given a knowledge task about topic #150, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #150. The main concepts involve knowledge principles applied to scenario 15.",
+    "category": "knowledge",
+    "difficulty": "easy",
+    "score": 0.7,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 151,
+    "instruction": "Given a writing task about topic #151, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #151. The main concepts involve writing principles applied to scenario 15.",
+    "category": "writing",
+    "difficulty": "medium",
+    "score": 0.71,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 152,
+    "instruction": "Given a analysis task about topic #152, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #152. The main concepts involve analysis principles applied to scenario 15.",
+    "category": "analysis",
+    "difficulty": "hard",
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 153,
+    "instruction": "Given a creative task about topic #153, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #153. The main concepts involve creative principles applied to scenario 15.",
+    "category": "creative",
+    "difficulty": "easy",
+    "score": 0.73,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 154,
+    "instruction": "Given a reasoning task about topic #154, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #154. The main concepts involve reasoning principles applied to scenario 15.",
+    "category": "reasoning",
+    "difficulty": "medium",
+    "score": 0.74,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 155,
+    "instruction": "Given a coding task about topic #155, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #155. The main concepts involve coding principles applied to scenario 15.",
+    "category": "coding",
+    "difficulty": "hard",
+    "score": 0.75,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 156,
+    "instruction": "Given a math task about topic #156, explain the key concepts and provide a step-by-step solution.",
+    "category": "math",
+    "difficulty": "easy",
+    "score": 0.76,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 157,
+    "instruction": "Given a knowledge task about topic #157, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #157. The main concepts involve knowledge principles applied to scenario 15.",
+    "category": "knowledge",
+    "difficulty": "medium",
+    "score": 0.77,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 158,
+    "instruction": "Given a writing task about topic #158, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #158. The main concepts involve writing principles applied to scenario 15.",
+    "category": "writing",
+    "difficulty": "hard",
+    "score": 0.78,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 159,
+    "instruction": "Given a analysis task about topic #159, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #159. The main concepts involve analysis principles applied to scenario 15.",
+    "category": "analysis",
+    "difficulty": "easy",
+    "score": 0.79,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 160,
+    "instruction": "",
+    "response": "Here is a detailed explanation for task #160. The main concepts involve creative principles applied to scenario 16.",
+    "category": "creative",
+    "difficulty": "medium",
+    "score": 0.8,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 161,
+    "instruction": "Given a reasoning task about topic #161, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #161. The main concepts involve reasoning principles applied to scenario 16.",
+    "category": "reasoning",
+    "difficulty": "hard",
+    "score": 0.81,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 162,
+    "instruction": "Given a coding task about topic #162, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #162. The main concepts involve coding principles applied to scenario 16.",
+    "category": "coding",
+    "difficulty": "easy",
+    "score": 0.82,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 163,
+    "instruction": "Given a math task about topic #163, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #163. The main concepts involve math principles applied to scenario 16.",
+    "category": "math",
+    "difficulty": "medium",
+    "score": 0.83,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 164,
+    "instruction": "Given a knowledge task about topic #164, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #164. The main concepts involve knowledge principles applied to scenario 16.",
+    "category": "knowledge",
+    "difficulty": "hard",
+    "score": 0.84,
+    "language": "en"
+  },
+  {
+    "id": 165,
+    "instruction": "Given a writing task about topic #165, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #165. The main concepts involve writing principles applied to scenario 16.",
+    "category": "writing",
+    "difficulty": "easy",
+    "score": 0.85,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 166,
+    "instruction": "Given a analysis task about topic #166, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #166. The main concepts involve analysis principles applied to scenario 16.",
+    "category": "analysis",
+    "difficulty": "medium",
+    "score": 0.86,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 167,
+    "instruction": "Given a creative task about topic #167, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #167. The main concepts involve creative principles applied to scenario 16.",
+    "category": "creative",
+    "difficulty": "hard",
+    "score": 0.87,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 168,
+    "instruction": "Given a reasoning task about topic #168, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #168. The main concepts involve reasoning principles applied to scenario 16.",
+    "category": "reasoning",
+    "difficulty": "easy",
+    "score": 0.88,
+    "language": "",
+    "source": "human"
+  },
+  {
+    "id": 169,
+    "instruction": "Given a coding task about topic #169, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #169. The main concepts involve coding principles applied to scenario 16.",
+    "category": "coding",
+    "difficulty": "medium",
+    "score": 0.89,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 170,
+    "instruction": "Given a math task about topic #170, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #170. The main concepts involve math principles applied to scenario 17.",
+    "category": "math",
+    "difficulty": "hard",
+    "score": 0.9,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 171,
+    "instruction": "Given a knowledge task about topic #171, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #171. The main concepts involve knowledge principles applied to scenario 17.",
+    "category": "knowledge",
+    "difficulty": "easy",
+    "score": 0.91,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 172,
+    "instruction": "Given a writing task about topic #172, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #172. The main concepts involve writing principles applied to scenario 17.",
+    "category": "writing",
+    "difficulty": "medium",
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 173,
+    "instruction": "Given a analysis task about topic #173, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #173. The main concepts involve analysis principles applied to scenario 17.",
+    "category": "analysis",
+    "difficulty": "hard",
+    "score": 0.93,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 174,
+    "instruction": "Given a creative task about topic #174, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #174. The main concepts involve creative principles applied to scenario 17.",
+    "category": "creative",
+    "difficulty": "easy",
+    "score": 0.94,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 175,
+    "instruction": "Given a reasoning task about topic #175, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #175. The main concepts involve reasoning principles applied to scenario 17.",
+    "category": "reasoning",
+    "difficulty": "medium",
+    "score": 0.95,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 176,
+    "instruction": "Given a coding task about topic #176, explain the key concepts and provide a step-by-step solution.",
+    "category": "coding",
+    "difficulty": "hard",
+    "score": 0.96,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 177,
+    "instruction": "Given a math task about topic #177, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #177. The main concepts involve math principles applied to scenario 17.",
+    "category": "math",
+    "difficulty": "easy",
+    "score": 0.97,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 178,
+    "instruction": "Given a knowledge task about topic #178, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #178. The main concepts involve knowledge principles applied to scenario 17.",
+    "category": "knowledge",
+    "difficulty": "medium",
+    "score": 0.98,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 179,
+    "instruction": "Given a writing task about topic #179, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #179. The main concepts involve writing principles applied to scenario 17.",
+    "category": "writing",
+    "difficulty": "hard",
+    "score": 0.99,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 0,
+    "instruction": "Given a reasoning task about topic #0, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #0. The main concepts involve reasoning principles applied to scenario 0.",
+    "category": "reasoning",
+    "difficulty": "easy",
+    "score": 0.7,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 1,
+    "instruction": "Given a coding task about topic #1, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #1. The main concepts involve coding principles applied to scenario 0.",
+    "category": "coding",
+    "difficulty": "medium",
+    "score": 0.71,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 2,
+    "instruction": "Given a math task about topic #2, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #2. The main concepts involve math principles applied to scenario 0.",
+    "category": "math",
+    "difficulty": "hard",
+    "score": 0.72,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 3,
+    "instruction": "Given a knowledge task about topic #3, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #3. The main concepts involve knowledge principles applied to scenario 0.",
+    "category": "knowledge",
+    "difficulty": "easy",
+    "score": 0.73,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 4,
+    "instruction": "Given a writing task about topic #4, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #4. The main concepts involve writing principles applied to scenario 0.",
+    "category": "writing",
+    "difficulty": "medium",
+    "score": 0.74,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 5,
+    "instruction": "Given a analysis task about topic #5, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #5. The main concepts involve analysis principles applied to scenario 0.",
+    "category": "analysis",
+    "difficulty": "hard",
+    "score": 0.75,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 6,
+    "instruction": "Given a creative task about topic #6, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #6. The main concepts involve creative principles applied to scenario 0.",
+    "category": "creative",
+    "difficulty": "easy",
+    "score": 0.76,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 7,
+    "instruction": "Given a reasoning task about topic #7, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #7. The main concepts involve reasoning principles applied to scenario 0.",
+    "category": "reasoning",
+    "difficulty": "medium",
+    "score": 0.77,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 8,
+    "instruction": "Given a coding task about topic #8, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #8. The main concepts involve coding principles applied to scenario 0.",
+    "category": "coding",
+    "difficulty": "hard",
+    "score": 0.78,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 9,
+    "instruction": "Given a math task about topic #9, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #9. The main concepts involve math principles applied to scenario 0.",
+    "category": "math",
+    "difficulty": "easy",
+    "score": 0.79,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 0,
+    "instruction": "Given a reasoning task about topic #0, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #0. The main concepts involve reasoning principles applied to scenario 0.",
+    "category": "reasoning",
+    "difficulty": "easy",
+    "score": 0.7,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 1,
+    "instruction": "Given a coding task about topic #1, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #1. The main concepts involve coding principles applied to scenario 0.",
+    "category": "coding",
+    "difficulty": "medium",
+    "score": 0.71,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 2,
+    "instruction": "Given a math task about topic #2, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #2. The main concepts involve math principles applied to scenario 0.",
+    "category": "math",
+    "difficulty": "hard",
+    "score": 0.72,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 3,
+    "instruction": "Given a knowledge task about topic #3, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #3. The main concepts involve knowledge principles applied to scenario 0.",
+    "category": "knowledge",
+    "difficulty": "easy",
+    "score": 0.73,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 4,
+    "instruction": "Given a writing task about topic #4, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #4. The main concepts involve writing principles applied to scenario 0.",
+    "category": "writing",
+    "difficulty": "medium",
+    "score": 0.74,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 5,
+    "instruction": "Given a analysis task about topic #5, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #5. The main concepts involve analysis principles applied to scenario 0.",
+    "category": "analysis",
+    "difficulty": "hard",
+    "score": 0.75,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 6,
+    "instruction": "Given a creative task about topic #6, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #6. The main concepts involve creative principles applied to scenario 0.",
+    "category": "creative",
+    "difficulty": "easy",
+    "score": 0.76,
+    "language": "en",
+    "source": "human"
+  },
+  {
+    "id": 7,
+    "instruction": "Given a reasoning task about topic #7, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #7. The main concepts involve reasoning principles applied to scenario 0.",
+    "category": "reasoning",
+    "difficulty": "medium",
+    "score": 0.77,
+    "language": "en",
+    "source": "synthetic"
+  },
+  {
+    "id": 8,
+    "instruction": "Given a coding task about topic #8, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #8. The main concepts involve coding principles applied to scenario 0.",
+    "category": "coding",
+    "difficulty": "hard",
+    "score": 0.78,
+    "language": "en",
+    "source": "augmented"
+  },
+  {
+    "id": 9,
+    "instruction": "Given a math task about topic #9, explain the key concepts and provide a step-by-step solution.",
+    "response": "Here is a detailed explanation for task #9. The main concepts involve math principles applied to scenario 0.",
+    "category": "math",
+    "difficulty": "easy",
+    "score": 0.79,
+    "language": "en",
+    "source": "human"
+  }
+]

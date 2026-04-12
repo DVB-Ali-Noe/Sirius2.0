@@ -1,0 +1,12 @@
+[package]
+name = "escrow"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+risc0-verifier-xrpl-wasm = { version = "0.1", default-features = false }
+xrpl-wasm-stdlib = "0.8"
+bytemuck = "1.14"

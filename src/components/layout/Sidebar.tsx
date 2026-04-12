@@ -3,11 +3,20 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
+import { useWalletStore, type WalletRole } from "@/stores/wallet"
 
-const NAV_ITEMS = [
+interface NavItem {
+  href: string
+  label: string
+  icon: React.ReactNode
+  roles: WalletRole[] | "all"
+}
+
+const NAV_ITEMS: NavItem[] = [
   {
     href: "/dashboard",
     label: "Dashboard",
+    roles: "all",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" />
@@ -18,8 +27,52 @@ const NAV_ITEMS = [
     ),
   },
   {
+    href: "/provider",
+    label: "My Datasets",
+    roles: ["provider", "loanbroker"],
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+        <polyline points="14 2 14 8 20 8" />
+      </svg>
+    ),
+  },
+  {
+    href: "/marketplace",
+    label: "Marketplace",
+    roles: ["borrower", "loanbroker"],
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+      </svg>
+    ),
+  },
+  {
+    href: "/borrower",
+    label: "My Loans",
+    roles: ["borrower", "loanbroker"],
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      </svg>
+    ),
+  },
+  {
+    href: "/admin",
+    label: "Admin",
+    roles: ["loanbroker"],
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+      </svg>
+    ),
+  },
+  {
     href: "/",
     label: "Exit",
+    roles: "all",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
@@ -35,6 +88,13 @@ export const SIDEBAR_EXPANDED = 260
 
 export function Sidebar({ open, onOpen, onClose, hiding }: { open: boolean; onOpen: () => void; onClose: () => void; hiding?: boolean }) {
   const pathname = usePathname()
+  const { role, connected } = useWalletStore()
+
+  const visibleItems = NAV_ITEMS.filter((item) => {
+    if (item.roles === "all") return true
+    if (!connected || !role) return false
+    return item.roles.includes(role)
+  })
 
   return (
     <motion.aside
@@ -49,7 +109,7 @@ export function Sidebar({ open, onOpen, onClose, hiding }: { open: boolean; onOp
       <div className="h-[82px] pointer-events-none" />
 
       <nav className="flex flex-1 flex-col gap-2 border border-white rounded-t-2xl border-b-0 bg-background -mt-px px-4 py-2">
-        {NAV_ITEMS.map((item) => {
+        {visibleItems.map((item) => {
           const isActive =
             item.href === "/"
               ? pathname === item.href

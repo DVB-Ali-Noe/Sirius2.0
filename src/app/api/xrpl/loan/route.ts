@@ -8,6 +8,7 @@ import {
   createLoanRecord,
   transitionLoan,
 } from "@/lib/xrpl";
+import { terminateLoanAccess } from "@/lib/sirius/xrpl-bridge";
 import { requireAuth, apiError, validationError } from "@/lib/api-utils";
 
 export async function POST(request: NextRequest) {
@@ -75,6 +76,7 @@ export async function POST(request: NextRequest) {
       return validationError("loanId");
     }
 
+    terminateLoanAccess(body.loanId, "loan_deleted");
     await deleteLoan(borrower, body.loanId);
 
     return NextResponse.json({ status: "deleted", loanId: body.loanId });

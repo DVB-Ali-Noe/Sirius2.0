@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getBorrower, getLoanBroker } from "@/lib/xrpl";
 import { makeRepayment, getRepaymentInfo } from "@/lib/xrpl/repayment";
 import { getLoan, checkDefault } from "@/lib/xrpl/loan-state";
+import { terminateLoanAccess } from "@/lib/sirius/xrpl-bridge";
 import { requireAuth, apiError, validationError } from "@/lib/api-utils";
 
 export async function POST(request: NextRequest) {
@@ -32,7 +33,8 @@ export async function POST(request: NextRequest) {
     }
 
     if (checkDefault(body.loanId)) {
-      return NextResponse.json({ error: "Loan has defaulted", loan }, { status: 400 });
+      terminateLoanAccess(body.loanId, "auto_default");
+      return NextResponse.json({ error: "Loan has defaulted", loan: getLoan(body.loanId) }, { status: 400 });
     }
 
     const borrower = getBorrower();

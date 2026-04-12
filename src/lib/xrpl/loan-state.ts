@@ -22,6 +22,7 @@ export interface LoanRecord {
   createdAt: number;
   activatedAt?: number;
   completedAt?: number;
+  distributedAt?: number;
   payments: PaymentRecord[];
 }
 
@@ -80,7 +81,11 @@ export function addPayment(loanId: string, payment: PaymentRecord): LoanRecord {
     transitionLoan(loanId, "REPAYING");
   }
 
-  if (loan.payments.length >= loan.paymentTotal) {
+  const totalPaid = loan.payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
+  const principal = parseFloat(loan.principalAmount);
+  const totalDue = principal * (1 + loan.interestRate / 10000);
+
+  if (totalPaid >= totalDue || loan.payments.length >= loan.paymentTotal) {
     transitionLoan(loanId, "COMPLETED");
   }
 

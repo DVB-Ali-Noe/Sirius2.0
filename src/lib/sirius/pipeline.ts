@@ -30,7 +30,6 @@ export interface IngestResult {
   merkleRoot: string;
   boundlessProof: BoundlessProof;
   entryCount: number;
-  masterKeyEncoded: string;
   pin: PinResult;
 }
 
@@ -96,7 +95,6 @@ export async function ingestDataset(input: IngestInput): Promise<IngestResult> {
     merkleRoot: merkle.root,
     boundlessProof,
     entryCount: input.rows.length,
-    masterKeyEncoded: record.masterKeyEncoded,
     pin,
   };
 }

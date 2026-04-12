@@ -15,6 +15,7 @@ function publicView(d: ReturnType<typeof listDatasets>[number]) {
     version: d.version,
     createdAt: d.createdAt,
     mptIssuanceId: d.mptIssuanceId,
+    vaultId: d.vaultId,
   };
 }
 

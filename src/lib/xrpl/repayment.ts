@@ -21,7 +21,7 @@ export function getRepaymentInfo(loanId: string): RepaymentInfo {
   const interestMultiplier = loan.interestRate / 10000;
   const totalDue = principalXrp * (1 + interestMultiplier);
   const perPayment = totalDue / loan.paymentTotal;
-  const totalPaid = loan.payments.length * perPayment;
+  const totalPaid = loan.payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
 
   let nextPaymentDue: number | null = null;
   let isOverdue = false;

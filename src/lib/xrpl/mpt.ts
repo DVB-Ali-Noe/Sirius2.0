@@ -30,20 +30,40 @@ export interface DatasetMetadata {
   version: string;
 }
 
+function buildMPTokenMetadata(metadata: DatasetMetadata): string {
+  const ticker = metadata.dataset.category
+    .replace(/[^A-Z0-9]/gi, "")
+    .toUpperCase()
+    .slice(0, 6) || "DATA"
+
+  const structured = {
+    t: ticker,
+    n: metadata.dataset.name,
+    i: "https://sirius.protocol/mpt-icon.png",
+    ac: "defi",
+    in: "Sirius Protocol",
+    ipfs: metadata.ipfsHash,
+    zk: metadata.zkProofRef,
+    schema: metadata.schemaHash,
+    qc: metadata.qualityCertificate,
+    v: metadata.version,
+  }
+
+  return Buffer.from(JSON.stringify(structured)).toString("hex")
+}
+
 export async function mintDatasetMPT(
   issuer: Wallet,
   metadata: DatasetMetadata
 ): Promise<{ mptIssuanceId: string }> {
   const client = await getClient();
 
-  const metadataHex = Buffer.from(JSON.stringify(metadata)).toString("hex");
-
   const tx: MPTokenIssuanceCreate = {
     TransactionType: "MPTokenIssuanceCreate",
     Account: issuer.classicAddress,
     MaximumAmount: "1",
     AssetScale: 0,
-    MPTokenMetadata: metadataHex,
+    MPTokenMetadata: buildMPTokenMetadata(metadata),
     Flags: {
       tfMPTCanTransfer: true,
       tfMPTRequireAuth: true,

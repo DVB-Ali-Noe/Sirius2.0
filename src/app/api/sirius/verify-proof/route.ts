@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyQualityProof, computeDatasetDigest, getDataset } from "@/lib/sirius";
+import { verifyQualityProof, computeDatasetDigest, getDataset, decryptDatasetWithKey } from "@/lib/sirius";
 import { requireAuth, apiError, validationError } from "@/lib/api-utils";
 
 interface VerifyBody {
@@ -23,12 +23,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (!body.sampleRows || !body.schema) {
-      const valid = verifyQualityProof(dataset.boundlessProof, dataset.boundlessProof.commitment);
+      const rows = await decryptDatasetWithKey(dataset.manifestCid, dataset.masterKeyEncoded);
+      const realDigest = computeDatasetDigest(rows, dataset.boundlessProof.assertions.schema);
+      const valid = verifyQualityProof(dataset.boundlessProof, realDigest);
       return NextResponse.json({
         proof: dataset.boundlessProof,
         verified: valid.valid,
         reason: valid.reason,
-        note: "verified against stored commitment (no sample provided)",
+        note: "verified against decrypted dataset",
       });
     }
 
