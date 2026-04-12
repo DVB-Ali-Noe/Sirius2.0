@@ -3,8 +3,8 @@ export function truncateAddress(address: string, chars: number = 4): string {
   return `${address.slice(0, chars + 2)}...${address.slice(-chars)}`
 }
 
-export function formatTimestamp(timestamp: number): string {
-  const date = new Date(timestamp * 1000)
+export function formatTimestamp(timestampMs: number): string {
+  const date = new Date(timestampMs)
   return date.toLocaleDateString("en-US", {
     day: "numeric",
     month: "short",
@@ -12,10 +12,9 @@ export function formatTimestamp(timestamp: number): string {
   })
 }
 
-export function timeFromNow(timestamp: number): string {
+export function timeFromNow(timestampMs: number): string {
   const now = Date.now()
-  const target = timestamp * 1000
-  const diff = target - now
+  const diff = timestampMs - now
   const absDiff = Math.abs(diff)
 
   const minutes = Math.floor(absDiff / (1000 * 60))

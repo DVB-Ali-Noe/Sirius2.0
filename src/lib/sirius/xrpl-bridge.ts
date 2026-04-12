@@ -32,7 +32,7 @@ export function activateLoanAccess(
   if (!loan) return { ok: false, reason: "loan not found" };
   if (!loan.mptIssuanceId) return { ok: false, reason: "loan has no mpt" };
 
-  const dataset = getByMpt(loan.mptIssuanceId) ?? getDataset(loan.mptIssuanceId);
+  const dataset = getByMpt(loan.mptIssuanceId);
   if (!dataset) {
     return { ok: false, reason: `no dataset registered for mpt ${loan.mptIssuanceId}` };
   }

@@ -52,6 +52,11 @@ export async function distributeInterest(
 
     const result = await client.submitAndWait(tx, { wallet: loanBroker });
 
+    const meta = result.result.meta as { TransactionResult?: string } | undefined;
+    if (meta?.TransactionResult !== "tesSUCCESS") {
+      throw new Error(`Distribution to ${holder.address} failed: ${meta?.TransactionResult ?? "unknown"}`);
+    }
+
     distributions.push({
       address: holder.address,
       amount,

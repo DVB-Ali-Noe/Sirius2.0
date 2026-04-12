@@ -54,9 +54,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Use masterKey for decryption (chunks are encrypted with masterKey)
+    // The borrowerKey in key-store is a derived key used for authorization only
     const rows = await decryptDatasetWithKey(
       dataset.manifestCid,
-      key.encodedKey
+      dataset.masterKeyEncoded
     );
 
     const limit = Math.max(1, Math.min(1000, body.limit ?? 100));

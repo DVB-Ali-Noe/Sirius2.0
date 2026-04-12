@@ -26,7 +26,18 @@ export {
   depositToVault,
   withdrawFromVault,
 } from "./vault";
-export { createLoan, deleteLoan } from "./lending";
+export {
+  createLoanBroker,
+  loanBrokerCoverDeposit,
+  createLoan,
+  payLoan,
+  manageLoan,
+  deleteLoan,
+  LOAN_FLAGS,
+  LOAN_MANAGE_FLAGS,
+} from "./lending";
+export { submitRawTx } from "./raw-tx";
+export { deploySmartEscrow, finishSmartEscrow } from "./escrow";
 export {
   createLoanRecord,
   transitionLoan,

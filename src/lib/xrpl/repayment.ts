@@ -1,7 +1,7 @@
-import { Wallet, Payment } from "xrpl";
-import { getClient } from "./client";
+import { Wallet } from "xrpl";
 import { addPayment, getLoan, checkDefault, type LoanRecord } from "./loan-state";
 import { parseXrpToDrops } from "./utils";
+import { payLoan } from "./lending";
 
 export interface RepaymentInfo {
   totalDue: number;
@@ -20,7 +20,6 @@ export function getRepaymentInfo(loanId: string): RepaymentInfo {
   const principalXrp = parseFloat(loan.principalAmount);
   const interestMultiplier = loan.interestRate / 10000;
   const totalDue = principalXrp * (1 + interestMultiplier);
-  const perPayment = totalDue / loan.paymentTotal;
   const totalPaid = loan.payments.reduce((sum, p) => sum + parseFloat(p.amount), 0);
 
   let nextPaymentDue: number | null = null;
@@ -47,21 +46,11 @@ export function getRepaymentInfo(loanId: string): RepaymentInfo {
 
 export async function makeRepayment(
   borrower: Wallet,
-  loanBrokerAddress: string,
   loanId: string,
   amountXrp: string
 ): Promise<LoanRecord> {
-  const client = await getClient();
-
-  const tx: Payment = {
-    TransactionType: "Payment",
-    Account: borrower.classicAddress,
-    Destination: loanBrokerAddress,
-    Amount: parseXrpToDrops(amountXrp),
-  };
-
-  const result = await client.submitAndWait(tx, { wallet: borrower });
-  const txHash = result.result.hash;
+  const drops = parseXrpToDrops(amountXrp);
+  const txHash = await payLoan(borrower, loanId, drops);
 
   return addPayment(loanId, {
     txHash,
@@ -70,3 +59,4 @@ export async function makeRepayment(
   });
 }
 
+export { checkDefault };

@@ -26,16 +26,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Already distributed" }, { status: 400 });
     }
 
+    loan.distributedAt = Date.now();
+
     const loanBroker = getLoanBroker();
     const provider = getProvider();
 
-    const result = await distributeInterest(loanBroker, body.loanId, [
-      { address: provider.classicAddress, sharePercent: 100 },
-    ]);
+    try {
+      const result = await distributeInterest(loanBroker, body.loanId, [
+        { address: provider.classicAddress, sharePercent: 100 },
+      ]);
 
-    loan.distributedAt = Date.now();
-
-    return NextResponse.json(result);
+      return NextResponse.json(result);
+    } catch (error) {
+      loan.distributedAt = undefined;
+      throw error;
+    }
   } catch (error) {
     return apiError(error);
   }

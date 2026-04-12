@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { timingSafeEqual } from "crypto";
+import { timingSafeEqual, createHash } from "crypto";
 
 export function requireAuth(request: NextRequest): NextResponse | null {
   const apiKey = request.headers.get("x-api-key");
@@ -12,14 +12,14 @@ export function requireAuth(request: NextRequest): NextResponse | null {
     );
   }
 
-  if (!apiKey || apiKey.length !== expected.length) {
+  if (!apiKey) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const isValid = timingSafeEqual(
-    Buffer.from(apiKey),
-    Buffer.from(expected)
-  );
+  const keyHash = createHash("sha256").update(apiKey).digest();
+  const expectedHash = createHash("sha256").update(expected).digest();
+
+  const isValid = timingSafeEqual(keyHash, expectedHash);
 
   if (!isValid) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

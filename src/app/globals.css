@@ -37,8 +37,6 @@ body {
   overflow-x: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  -webkit-user-select: none;
-  user-select: none;
 }
 
 body::-webkit-scrollbar {

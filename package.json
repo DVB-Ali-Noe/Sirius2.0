@@ -21,8 +21,10 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.7.0",
+    "ripple-binary-codec": "2.6.0-smartescrow.3",
+    "ripple-keypairs": "^2.0.0",
     "three": "^0.183.1",
-    "xrpl": "^4.6.0",
+    "xrpl": "4.5.0-smartescrow.4",
     "xrpl-connect": "^0.7.1",
     "zustand": "^5.0.11"
   },

@@ -11,6 +11,7 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner"
 import { Toast } from "@/components/common/Toast"
 import { apiPost } from "@/lib/api-client"
 import { truncateAddress } from "@/lib/utils"
+import { TxLink, ObjectLink } from "@/components/common/TxLink"
 
 function ActionButton({ label, loading, onClick, variant = "default" }: {
   label: string
@@ -100,7 +101,7 @@ function VaultPanel() {
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-border bg-surface/50 p-5">
-      <h2 className="text-base font-medium tracking-wider text-foreground">Create Vault</h2>
+      <h2 className="text-base font-medium tracking-wider text-foreground">Create Lending Pool</h2>
       <input
         type="text"
         placeholder="MPT Issuance ID"
@@ -108,13 +109,120 @@ function VaultPanel() {
         onChange={(e) => setMptId(e.target.value)}
         className="rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-foreground placeholder-muted outline-none focus:border-white/30"
       />
-      <ActionButton label="Create Vault + Domain" loading={loading} onClick={handleCreate} variant="positive" />
+      <ActionButton label="Create Lending Pool + Domain" loading={loading} onClick={handleCreate} variant="positive" />
       {result && (
         <div className="flex flex-col gap-1 text-xs text-muted">
           <span>Vault: {truncateAddress(result.vaultId, 10)}</span>
           <span>Domain: {truncateAddress(result.domainId, 10)}</span>
         </div>
       )}
+      {toast && <Toast message={toast.msg} variant={toast.variant} onClose={() => setToast(null)} />}
+    </div>
+  )
+}
+
+type OnboardStep = "idle" | "funding" | "issuing" | "done"
+
+function OnboardPanel() {
+  const [address, setAddress] = useState("")
+  const [role, setRole] = useState<"provider" | "borrower">("provider")
+  const [step, setStep] = useState<OnboardStep>("idle")
+  const [toast, setToast] = useState<{ msg: string; variant: "success" | "error" } | null>(null)
+  const [result, setResult] = useState<{ address: string; credential: string } | null>(null)
+
+  const credentialFor = (r: "provider" | "borrower") =>
+    r === "provider" ? "DataProviderCertified" : "BorrowerKYB"
+
+  const handleOnboard = async () => {
+    if (!address) return
+    setResult(null)
+
+    try {
+      setStep("funding")
+      await apiPost("/api/xrpl/fund", { address })
+
+      setStep("issuing")
+      const cred = credentialFor(role)
+      await apiPost("/api/xrpl/credentials", {
+        action: "issue",
+        credentialType: cred,
+        address,
+      })
+
+      setStep("done")
+      setResult({ address, credential: cred })
+      setToast({ msg: `${role} onboarded successfully`, variant: "success" })
+      setTimeout(() => setStep("idle"), 2000)
+    } catch (err) {
+      setToast({ msg: err instanceof Error ? err.message : "Onboarding failed", variant: "error" })
+      setStep("idle")
+    }
+  }
+
+  const stepLabels: Record<OnboardStep, string> = {
+    idle: "Fund & Certify",
+    funding: "Funding via faucet...",
+    issuing: "Issuing credential...",
+    done: "Onboarded!",
+  }
+
+  return (
+    <div className="flex flex-col gap-4 rounded-2xl border border-border bg-surface/50 p-5">
+      <h2 className="text-base font-medium tracking-wider text-foreground">Onboard Participant</h2>
+      <input
+        type="text"
+        placeholder="XRPL address (r...)"
+        value={address}
+        onChange={(e) => setAddress(e.target.value)}
+        disabled={step !== "idle"}
+        className="rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-foreground placeholder-muted outline-none focus:border-white/30 disabled:opacity-50"
+      />
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={() => setRole("provider")}
+          className={`rounded-full border px-4 py-2 text-xs uppercase tracking-widest transition-colors cursor-pointer ${
+            role === "provider"
+              ? "border-accent bg-accent/20 text-accent"
+              : "border-white/10 bg-white/5 text-muted hover:text-foreground"
+          }`}
+        >
+          Provider
+        </button>
+        <button
+          onClick={() => setRole("borrower")}
+          className={`rounded-full border px-4 py-2 text-xs uppercase tracking-widest transition-colors cursor-pointer ${
+            role === "borrower"
+              ? "border-accent bg-accent/20 text-accent"
+              : "border-white/10 bg-white/5 text-muted hover:text-foreground"
+          }`}
+        >
+          Borrower
+        </button>
+      </div>
+
+      {step !== "idle" && step !== "done" && (
+        <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.02] px-4 py-3">
+          <div className="h-3 w-3 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+          <span className="text-sm text-muted">{stepLabels[step]}</span>
+        </div>
+      )}
+
+      {step === "done" && result && (
+        <div className="flex items-center gap-3 rounded-lg border border-positive/20 bg-positive/5 px-4 py-3">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-positive">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeLinecap="round" strokeLinejoin="round" />
+            <polyline points="22 4 12 14.01 9 11.01" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="text-xs text-positive">{truncateAddress(result.address)} — {result.credential}</span>
+        </div>
+      )}
+
+      <ActionButton
+        label={stepLabels[step]}
+        loading={step !== "idle" && step !== "done"}
+        onClick={handleOnboard}
+        variant="positive"
+      />
       {toast && <Toast message={toast.msg} variant={toast.variant} onClose={() => setToast(null)} />}
     </div>
   )
@@ -145,12 +253,23 @@ function DemoPanel() {
       <ActionButton label="Run Full Demo" loading={loading} onClick={runDemo} />
       {result && (
         <div className="flex flex-col gap-1 rounded-lg border border-border bg-background p-3 text-xs text-muted">
-          {Object.entries(result).map(([k, v]) => (
-            <div key={k} className="flex justify-between">
-              <span>{k}</span>
-              <span className="text-foreground font-mono">{typeof v === "string" && v.length > 20 ? truncateAddress(v, 8) : String(v)}</span>
-            </div>
-          ))}
+          {Object.entries(result).map(([k, v]) => {
+            const val = String(v)
+            const isHash = typeof v === "string" && v.length > 20
+            const isAddress = typeof v === "string" && v.startsWith("r") && v.length > 25
+            return (
+              <div key={k} className="flex justify-between items-center">
+                <span>{k}</span>
+                {isAddress ? (
+                  <ObjectLink id={val} type="account" />
+                ) : isHash ? (
+                  <TxLink hash={val} />
+                ) : (
+                  <span className="text-foreground font-mono">{val}</span>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
       {toast && <Toast message={toast.msg} variant={toast.variant} onClose={() => setToast(null)} />}
@@ -211,8 +330,8 @@ function LoansTable({ loans }: { loans: LoanRecord[] }) {
 
               return (
                 <tr key={loan.loanId} className="border-b border-border/50 transition-colors hover:bg-white/[0.02]">
-                  <td className="px-4 py-3 font-mono text-foreground">{truncateAddress(loan.loanId, 6)}</td>
-                  <td className="px-4 py-3 text-muted">{truncateAddress(loan.borrower)}</td>
+                  <td className="px-4 py-3"><TxLink hash={loan.loanId} /></td>
+                  <td className="px-4 py-3"><ObjectLink id={loan.borrower} type="account" /></td>
                   <td className="px-4 py-3"><LoanStatusBadge status={loan.status} /></td>
                   <td className="px-4 py-3 text-foreground">{loan.principalAmount} MPT</td>
                   <td className="px-4 py-3 text-foreground">{(loan.interestRate / 100).toFixed(1)}%</td>
@@ -249,11 +368,35 @@ function LoansTable({ loans }: { loans: LoanRecord[] }) {
   )
 }
 
+const TABS = ["Overview", "Onboard", "Pools", "Loans", "Demo"] as const
+type Tab = typeof TABS[number]
+
+function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
+  return (
+    <div className="flex gap-1 rounded-full border border-border bg-surface/50 p-1">
+      {TABS.map((tab) => (
+        <button
+          key={tab}
+          onClick={() => onChange(tab)}
+          className={`rounded-full px-4 py-1.5 text-xs uppercase tracking-widest transition-colors cursor-pointer ${
+            active === tab
+              ? "bg-white/10 text-white border border-white/20"
+              : "text-muted hover:text-foreground border border-transparent"
+          }`}
+        >
+          {tab}
+        </button>
+      ))}
+    </div>
+  )
+}
+
 export default function AdminPage() {
   const allowed = useRouteGuard("/admin")
   const { role } = useWalletStore()
   const { data: loans, isLoading: loansLoading } = useLoans()
-  const { data: datasets, isLoading: datasetsLoading } = useDatasets()
+  const { data: datasets } = useDatasets()
+  const [tab, setTab] = useState<Tab>("Overview")
 
   if (!allowed) return null
 
@@ -267,35 +410,40 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <h1 className="text-2xl font-bold tracking-wider">Admin Panel</h1>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="flex flex-col gap-1 rounded-2xl border border-border bg-surface/50 p-5">
-          <span className="text-xs text-muted">Datasets</span>
-          <span className="text-2xl font-bold text-foreground">{datasets?.length ?? 0}</span>
-        </div>
-        <div className="flex flex-col gap-1 rounded-2xl border border-border bg-surface/50 p-5">
-          <span className="text-xs text-muted">Active Loans</span>
-          <span className="text-2xl font-bold text-accent">{loans?.filter((l) => l.status === "ACTIVE" || l.status === "REPAYING").length ?? 0}</span>
-        </div>
-        <div className="flex flex-col gap-1 rounded-2xl border border-border bg-surface/50 p-5">
-          <span className="text-xs text-muted">Total Loans</span>
-          <span className="text-2xl font-bold text-foreground">{loans?.length ?? 0}</span>
-        </div>
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-wider">Admin Panel</h1>
+        <TabBar active={tab} onChange={setTab} />
       </div>
 
-      <DemoPanel />
+      {tab === "Overview" && (
+        <>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="flex flex-col gap-1 rounded-2xl border border-border bg-surface/50 p-5">
+              <span className="text-xs text-muted">Datasets</span>
+              <span className="text-2xl font-bold text-foreground">{datasets?.length ?? 0}</span>
+            </div>
+            <div className="flex flex-col gap-1 rounded-2xl border border-border bg-surface/50 p-5">
+              <span className="text-xs text-muted">Active Loans</span>
+              <span className="text-2xl font-bold text-accent">{loans?.filter((l) => l.status === "ACTIVE" || l.status === "REPAYING").length ?? 0}</span>
+            </div>
+            <div className="flex flex-col gap-1 rounded-2xl border border-border bg-surface/50 p-5">
+              <span className="text-xs text-muted">Total Loans</span>
+              <span className="text-2xl font-bold text-foreground">{loans?.length ?? 0}</span>
+            </div>
+          </div>
+        </>
+      )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <CredentialPanel />
-        <VaultPanel />
-      </div>
+      {tab === "Onboard" && <OnboardPanel />}
 
-      <div>
-        <h2 className="mb-4 text-base font-medium tracking-wider text-foreground">All Loans</h2>
-        {loansLoading ? <LoadingSpinner /> : <LoansTable loans={loans ?? []} />}
-      </div>
+      {tab === "Pools" && <VaultPanel />}
+
+      {tab === "Loans" && (
+        loansLoading ? <LoadingSpinner /> : <LoansTable loans={loans ?? []} />
+      )}
+
+      {tab === "Demo" && <DemoPanel />}
     </div>
   )
 }

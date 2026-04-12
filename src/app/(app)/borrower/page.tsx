@@ -13,6 +13,7 @@ import { Modal } from "@/components/common/Modal"
 import { Toast } from "@/components/common/Toast"
 import { truncateAddress } from "@/lib/utils"
 import { apiPost } from "@/lib/api-client"
+import { TxLink, ObjectLink } from "@/components/common/TxLink"
 
 function LoanCard({ loan, datasetName, onRepay, onDownload }: {
   loan: LoanRecord
@@ -29,7 +30,7 @@ function LoanCard({ loan, datasetName, onRepay, onDownload }: {
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
           {datasetName && <span className="text-sm font-medium text-foreground">{datasetName}</span>}
-          <span className="text-xs text-muted font-mono">{truncateAddress(loan.loanId, 8)}</span>
+          <TxLink hash={loan.loanId} label={`Loan ${truncateAddress(loan.loanId, 4)}`} />
         </div>
         <LoanStatusBadge status={loan.status} />
       </div>

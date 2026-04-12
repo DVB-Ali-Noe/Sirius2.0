@@ -7,11 +7,13 @@ import { useDatasets } from "@/hooks/use-datasets"
 import { useCreateLoan } from "@/hooks/use-loans"
 import { useWalletStore } from "@/stores/wallet"
 import { DatasetCard } from "@/components/dataset/DatasetCard"
+import { DatasetDetail } from "@/components/dataset/DatasetDetail"
 import { Modal } from "@/components/common/Modal"
 import { LoadingSpinner } from "@/components/common/LoadingSpinner"
 import { EmptyState } from "@/components/common/EmptyState"
 import { Toast } from "@/components/common/Toast"
 import { apiPost } from "@/lib/api-client"
+import { TxLink } from "@/components/common/TxLink"
 import type { Dataset } from "@/hooks/use-datasets"
 
 type FlowStep = "idle" | "creating-loan" | "activating-key" | "done"
@@ -25,6 +27,7 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
   const [duration, setDuration] = useState("30")
   const createLoan = useCreateLoan()
   const [step, setStep] = useState<FlowStep>("idle")
+  const [txHash, setTxHash] = useState<string | null>(null)
   const [toast, setToast] = useState<{ msg: string; variant: "success" | "error" } | null>(null)
 
   if (!dataset) return null
@@ -41,6 +44,8 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
         interestRate: 500,
       }) as { loanId: string }
 
+      setTxHash(result.loanId)
+
       setStep("activating-key")
       await apiPost("/api/sirius/activate", {
         action: "activate",
@@ -51,8 +56,9 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
       setTimeout(() => {
         onClose()
         setStep("idle")
+        setTxHash(null)
         onComplete()
-      }, 1000)
+      }, 1500)
     } catch (err) {
       setToast({ msg: err instanceof Error ? err.message : "Failed", variant: "error" })
       setStep("idle")
@@ -82,12 +88,6 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
             <span className="text-sm text-muted">Entries</span>
             <span className="text-sm text-foreground">{dataset.entryCount.toLocaleString()}</span>
           </div>
-          {dataset.vaultId && (
-            <div className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3">
-              <span className="text-sm text-muted">Vault</span>
-              <span className="text-sm text-foreground font-mono">{dataset.vaultId.slice(0, 8)}...{dataset.vaultId.slice(-4)}</span>
-            </div>
-          )}
 
           <div className="flex flex-col gap-2">
             <label className="text-xs text-muted">Loan Duration (days)</label>
@@ -116,6 +116,13 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
             </div>
           )}
 
+          {step !== "idle" && txHash && (
+            <div className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3">
+              <span className="text-xs text-muted">Tx Hash</span>
+              <TxLink hash={txHash} />
+            </div>
+          )}
+
           {step === "done" && (
             <div className="flex items-center gap-3 rounded-lg border border-positive/20 bg-positive/5 px-4 py-3">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-positive">
@@ -140,44 +147,55 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
   )
 }
 
-function VaultSection({ vaultId, datasets, onBorrow }: {
+function PoolCard({ vaultId, datasets, onSelect }: {
   vaultId: string
   datasets: Dataset[]
-  onBorrow: (d: Dataset) => void
+  onSelect: () => void
 }) {
-  const { connected } = useWalletStore()
+  const avgScore = datasets.reduce((s, d) => s + (d.boundlessProof.assertions.qualityScore ?? 0), 0) / datasets.length
+  const totalRows = datasets.reduce((s, d) => s + d.entryCount, 0)
+  const categories = [...new Set(datasets.map((d) => d.description.category))]
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-border" />
-        <span className="text-xs uppercase tracking-widest text-muted">
-          Vault {vaultId.slice(0, 8)}...{vaultId.slice(-4)}
-        </span>
-        <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] text-muted">
-          {datasets.length} dataset{datasets.length > 1 ? "s" : ""}
-        </span>
-        <div className="h-px flex-1 bg-border" />
+    <button
+      onClick={onSelect}
+      className="group flex flex-col gap-4 rounded-2xl border border-border bg-surface/50 p-6 text-left backdrop-blur-sm transition-all hover:border-white/20 cursor-pointer"
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-muted">Lending Pool</span>
+          <span className="text-sm font-mono text-foreground">{vaultId.slice(0, 10)}...{vaultId.slice(-6)}</span>
+        </div>
+        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-muted transition-colors group-hover:border-accent/40 group-hover:text-accent">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </div>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {datasets.map((d) => (
-          <DatasetCard
-            key={d.datasetId}
-            dataset={d}
-            action={
-              connected ? (
-                <button
-                  onClick={() => onBorrow(d)}
-                  className="rounded-full border border-accent/60 bg-accent/10 px-4 py-1.5 text-xs uppercase tracking-wider text-accent transition-colors hover:bg-accent/20 cursor-pointer"
-                >
-                  Borrow
-                </button>
-              ) : null
-            }
-          />
+
+      <div className="grid grid-cols-3 gap-3">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] uppercase tracking-wider text-muted">Datasets</span>
+          <span className="text-lg font-bold text-foreground">{datasets.length}</span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] uppercase tracking-wider text-muted">Avg Score</span>
+          <span className="text-lg font-bold text-positive">{avgScore.toFixed(0)}</span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[10px] uppercase tracking-wider text-muted">Total Rows</span>
+          <span className="text-lg font-bold text-foreground">{totalRows.toLocaleString()}</span>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {categories.map((cat) => (
+          <span key={cat} className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-muted">
+            {cat}
+          </span>
         ))}
       </div>
-    </div>
+    </button>
   )
 }
 
@@ -185,69 +203,115 @@ export default function MarketplacePage() {
   const allowed = useRouteGuard("/marketplace")
   const router = useRouter()
   const { data: datasets, isLoading } = useDatasets()
-  const [selected, setSelected] = useState<Dataset | null>(null)
+  const { connected } = useWalletStore()
+  const [selectedVault, setSelectedVault] = useState<string | null>(null)
+  const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null)
+  const [detailDataset, setDetailDataset] = useState<Dataset | null>(null)
 
   if (!allowed) return null
 
   const available = datasets?.filter((d) => d.mptIssuanceId) ?? []
 
   const vaultGroups = new Map<string, Dataset[]>()
-  const noVault: Dataset[] = []
   for (const d of available) {
     if (d.vaultId) {
       const group = vaultGroups.get(d.vaultId) ?? []
       group.push(d)
       vaultGroups.set(d.vaultId, group)
-    } else {
-      noVault.push(d)
     }
   }
 
+  const selectedPoolDatasets = selectedVault ? vaultGroups.get(selectedVault) ?? [] : []
+
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-wider">Marketplace</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-muted">{vaultGroups.size} pool{vaultGroups.size > 1 ? "s" : ""}</span>
-          <span className="text-sm text-muted">{available.length} dataset{available.length > 1 ? "s" : ""}</span>
-        </div>
-      </div>
+      {!selectedVault ? (
+        <>
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold tracking-wider">Lending Pools</h1>
+            <span className="text-sm text-muted">{vaultGroups.size} pool{vaultGroups.size !== 1 ? "s" : ""} available</span>
+          </div>
 
-      {isLoading ? (
-        <LoadingSpinner />
-      ) : available.length === 0 ? (
-        <EmptyState title="No datasets available" description="Check back later or deposit a dataset as a provider." />
-      ) : (
-        <div className="flex flex-col gap-10">
-          {[...vaultGroups.entries()].map(([vaultId, group]) => (
-            <VaultSection
-              key={vaultId}
-              vaultId={vaultId}
-              datasets={group}
-              onBorrow={setSelected}
-            />
-          ))}
-          {noVault.length > 0 && (
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-border" />
-                <span className="text-xs uppercase tracking-widest text-muted">Unassigned</span>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {noVault.map((d) => (
-                  <DatasetCard key={d.datasetId} dataset={d} />
-                ))}
-              </div>
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : vaultGroups.size === 0 ? (
+            <EmptyState title="No pools available" description="Check back later or deposit a dataset as a provider." />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[...vaultGroups.entries()].map(([vaultId, group]) => (
+                <PoolCard
+                  key={vaultId}
+                  vaultId={vaultId}
+                  datasets={group}
+                  onSelect={() => setSelectedVault(vaultId)}
+                />
+              ))}
             </div>
           )}
-        </div>
+        </>
+      ) : (
+        <>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSelectedVault(null)}
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/5 text-muted transition-colors hover:text-foreground hover:border-white/40 cursor-pointer"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold tracking-wider">Pool Datasets</h1>
+              <span className="text-xs text-muted font-mono">{selectedVault.slice(0, 10)}...{selectedVault.slice(-6)}</span>
+            </div>
+            <span className="ml-auto text-sm text-muted">{selectedPoolDatasets.length} dataset{selectedPoolDatasets.length !== 1 ? "s" : ""}</span>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {selectedPoolDatasets.map((d) => (
+              <DatasetCard
+                key={d.datasetId}
+                dataset={d}
+                onSelect={setDetailDataset}
+                action={
+                  connected ? (
+                    <button
+                      onClick={() => setSelectedDataset(d)}
+                      className="rounded-full border border-accent/60 bg-accent/10 px-4 py-1.5 text-xs uppercase tracking-wider text-accent transition-colors hover:bg-accent/20 cursor-pointer"
+                    >
+                      Borrow
+                    </button>
+                  ) : null
+                }
+              />
+            ))}
+          </div>
+        </>
       )}
 
+      <DatasetDetail
+        dataset={detailDataset}
+        open={!!detailDataset}
+        onClose={() => setDetailDataset(null)}
+        action={
+          connected && detailDataset?.mptIssuanceId && detailDataset?.vaultId ? (
+            <button
+              onClick={() => {
+                setSelectedDataset(detailDataset)
+                setDetailDataset(null)
+              }}
+              className="rounded-full border border-accent/60 bg-accent/10 px-5 py-2 text-xs uppercase tracking-wider text-accent transition-colors hover:bg-accent/20 cursor-pointer"
+            >
+              Borrow this dataset
+            </button>
+          ) : null
+        }
+      />
+
       <LoanRequestModal
-        dataset={selected}
-        open={!!selected}
-        onClose={() => setSelected(null)}
+        dataset={selectedDataset}
+        open={!!selectedDataset}
+        onClose={() => setSelectedDataset(null)}
         onComplete={() => router.push("/borrower")}
       />
     </div>

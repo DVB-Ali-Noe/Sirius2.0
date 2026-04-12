@@ -7,6 +7,7 @@ type EventCallback = (tx: TransactionStream) => void;
 
 const listeners = new Map<EventType, EventCallback[]>();
 let subscribed = false;
+let subscribedAccounts: string[] = [];
 
 export function onXRPLEvent(eventType: EventType, callback: EventCallback): () => void {
   const existing = listeners.get(eventType) ?? [];
@@ -40,6 +41,7 @@ export async function subscribeToAccounts(accounts: string[]): Promise<void> {
     }
   });
 
+  subscribedAccounts = accounts;
   subscribed = true;
 }
 
@@ -47,8 +49,11 @@ export async function unsubscribeAll(): Promise<void> {
   if (!subscribed) return;
 
   const client = await getClient();
-  await client.request({ command: "unsubscribe", accounts: [] });
+  if (subscribedAccounts.length > 0) {
+    await client.request({ command: "unsubscribe", accounts: subscribedAccounts });
+  }
   listeners.clear();
+  subscribedAccounts = [];
   subscribed = false;
 }
 

@@ -7,6 +7,7 @@ import { QualityCertificate } from "./QualityCertificate"
 interface DatasetCardProps {
   dataset: Dataset
   action?: React.ReactNode
+  onSelect?: (dataset: Dataset) => void
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -38,14 +39,17 @@ function ScoreRing({ score }: { score: number }) {
   )
 }
 
-export function DatasetCard({ dataset, action }: DatasetCardProps) {
+export function DatasetCard({ dataset, action, onSelect }: DatasetCardProps) {
   const [certOpen, setCertOpen] = useState(false)
   const catStyle = CATEGORY_COLORS[dataset.description.category] ?? "border-white/20 text-muted"
   const score = dataset.boundlessProof.assertions.qualityScore
 
   return (
     <>
-      <div className="group flex flex-col gap-4 rounded-2xl border border-border bg-surface/50 p-5 backdrop-blur-sm transition-colors hover:border-white/20">
+      <div
+        className={`group flex flex-col gap-4 rounded-2xl border border-border bg-surface/50 p-5 backdrop-blur-sm transition-colors hover:border-white/20 ${onSelect ? "cursor-pointer" : ""}`}
+        onClick={onSelect ? () => onSelect(dataset) : undefined}
+      >
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1 min-w-0">
             <h3 className="text-sm font-medium text-foreground truncate">{dataset.description.name}</h3>
@@ -70,7 +74,7 @@ export function DatasetCard({ dataset, action }: DatasetCardProps) {
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center justify-between pt-1" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setCertOpen(true)}
             className="flex items-center gap-1.5 text-xs text-positive hover:underline cursor-pointer"

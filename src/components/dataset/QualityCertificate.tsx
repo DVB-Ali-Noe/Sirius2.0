@@ -27,8 +27,8 @@ export function QualityCertificate({ dataset, open, onClose }: QualityCertificat
         <Row label="Dataset" value={dataset.description.name} />
         <Row label="Entry Count" value={dataset.entryCount.toLocaleString()} />
         <Row label="Duplicate Rate" value={assertions.duplicateRate} />
-        <Row label="Schema Valid" value={assertions.schemaValid ? "Yes" : "No"} />
-        <Row label="Field Completeness" value={`${(assertions.fieldCompleteness * 100).toFixed(0)}%`} />
+        <Row label="Schema Valid" value={assertions.schemaValid !== false ? "Yes" : "No"} />
+        <Row label="Field Completeness" value={assertions.fieldCompleteness != null && !isNaN(assertions.fieldCompleteness) ? `${(assertions.fieldCompleteness * 100).toFixed(0)}%` : "N/A"} />
         <Row label="Quality Score" value={`${assertions.qualityScore}/100`} />
         <Row label="Proof ID" value={dataset.boundlessProof.proofId.slice(0, 16) + "..."} />
       </div>

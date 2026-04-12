@@ -21,9 +21,9 @@ struct DatasetInput {
 
 fn main() {
     let mut input_bytes = Vec::new();
-    env::stdin().read_to_end(&mut input_bytes).unwrap();
+    env::stdin().read_to_end(&mut input_bytes).expect("failed to read input from stdin");
 
-    let input: DatasetInput = serde_json::from_slice(&input_bytes).unwrap();
+    let input: DatasetInput = serde_json::from_slice(&input_bytes).expect("failed to parse dataset JSON");
     let rows = &input.rows;
     let schema = &input.schema_fields;
 
@@ -36,7 +36,7 @@ fn main() {
     let mut seen = HashSet::new();
     let mut duplicate_count: u64 = 0;
     for row in rows {
-        let row_str = serde_json::to_string(row).unwrap();
+        let row_str = serde_json::to_string(row).expect("failed to serialize row");
         if !seen.insert(row_str) {
             duplicate_count += 1;
         }
@@ -68,7 +68,7 @@ fn main() {
                     empty_fields += 1;
                 }
                 Some(v) => {
-                    if v.is_null() || (v.is_string() && v.as_str().unwrap().is_empty()) {
+                    if v.is_null() || (v.is_string() && v.as_str().unwrap_or("").is_empty()) {
                         empty_fields += 1;
                     }
                 }
@@ -108,6 +108,10 @@ fn main() {
     }
 
     score += (field_completeness * 20.0) as u8;
+
+    if score > 100 {
+        score = 100;
+    }
 
     // Build fixed-size journal (58 bytes)
     let completeness_scaled = (field_completeness * 10000.0) as u64;

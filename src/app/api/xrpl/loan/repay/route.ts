@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBorrower, getLoanBroker } from "@/lib/xrpl";
+import { getBorrower } from "@/lib/xrpl";
 import { makeRepayment, getRepaymentInfo } from "@/lib/xrpl/repayment";
 import { getLoan, checkDefault } from "@/lib/xrpl/loan-state";
 import { terminateLoanAccess } from "@/lib/sirius/xrpl-bridge";
@@ -38,11 +38,9 @@ export async function POST(request: NextRequest) {
     }
 
     const borrower = getBorrower();
-    const loanBroker = getLoanBroker();
 
     const updatedLoan = await makeRepayment(
       borrower,
-      loanBroker.classicAddress,
       body.loanId,
       body.amountXrp
     );

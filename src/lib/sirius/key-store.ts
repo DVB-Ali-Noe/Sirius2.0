@@ -1,5 +1,5 @@
 import { randomBytes } from "crypto";
-import { encodeKey, type EncryptedPayload } from "./encryption";
+import { encodeKey, deriveKey, type EncryptedPayload } from "./encryption";
 
 export interface BorrowerKey {
   keyId: string;
@@ -35,12 +35,13 @@ export function issueBorrowerKey(params: IssueParams): BorrowerKey {
   }
 
   const keyId = `key_${randomBytes(8).toString("hex")}`;
+  const borrowerKey = deriveKey(params.masterKey, `${params.loanId}:${params.borrower}`);
   const record: BorrowerKey = {
     keyId,
     borrower: params.borrower,
     loanId: params.loanId,
     datasetId: params.datasetId,
-    encodedKey: encodeKey(params.masterKey),
+    encodedKey: encodeKey(borrowerKey),
     issuedAt: Date.now(),
     expiresAt: Date.now() + params.ttlMs,
     revoked: false,

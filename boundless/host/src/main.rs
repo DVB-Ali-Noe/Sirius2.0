@@ -113,7 +113,7 @@ fn main() {
     let output = ReceiptOutput {
         image_id: image_id_hex,
         journal_hex: hex_encode(journal),
-        seal_hex: hex_encode(&bincode::serialize(&receipt.inner).unwrap_or_default()),
+        seal_hex: hex_encode(&bincode::serialize(&receipt.inner).expect("failed to serialize proof seal")),
         certificate,
     };
 

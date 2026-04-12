@@ -687,7 +687,6 @@ function BlobScene() {
       const key = parseInt(e.key);
       if (key >= 0 && key <= 4) {
         visibleLayerRef.current = key;
-        console.log(`[Blob Debug] Layer: ${key} — ${labels[key]}`);
       }
     };
     window.addEventListener("keydown", handleKey);
