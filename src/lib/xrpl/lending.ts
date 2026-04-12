@@ -1,6 +1,5 @@
-import { Wallet } from "xrpl";
+import { Wallet, LoanSet, LoanDelete } from "xrpl";
 import { getClient } from "./client";
-import { submitRawTx } from "./raw-tx";
 
 interface LoanTerms {
   loanBrokerId: string;
@@ -11,95 +10,32 @@ interface LoanTerms {
   gracePeriod?: number;
 }
 
-export async function createLoanBroker(
-  owner: Wallet,
-  vaultId: string,
-  managementFeeRate: number = 1000
-): Promise<string> {
-  const client = await getClient();
-
-  const result = await submitRawTx(client, owner, {
-    TransactionType: "LoanBrokerSet",
-    VaultID: vaultId,
-    ManagementFeeRate: managementFeeRate,
-  });
-
-  const affectedNodes = (result.meta as { AffectedNodes?: Array<{ CreatedNode?: { LedgerEntryType: string; LedgerIndex: string } }> })?.AffectedNodes;
-  const brokerNode = affectedNodes?.find((n) => n.CreatedNode?.LedgerEntryType === "LoanBroker");
-  return brokerNode?.CreatedNode?.LedgerIndex ?? result.hash;
-}
-
-export async function loanBrokerCoverDeposit(
-  broker: Wallet,
-  loanBrokerId: string,
-  amountDrops: string
-): Promise<string> {
-  const client = await getClient();
-
-  const result = await submitRawTx(client, broker, {
-    TransactionType: "LoanBrokerCoverDeposit",
-    LoanBrokerID: loanBrokerId,
-    Amount: amountDrops,
-  });
-
-  return result.hash;
-}
-
 export async function createLoan(
   borrower: Wallet,
   terms: LoanTerms
 ): Promise<string> {
   const client = await getClient();
 
-  const result = await submitRawTx(client, borrower, {
+  const tx: LoanSet = {
     TransactionType: "LoanSet",
+    Account: borrower.classicAddress,
     LoanBrokerID: terms.loanBrokerId,
     PrincipalRequested: terms.principalAmount,
     InterestRate: terms.interestRate,
     PaymentTotal: terms.paymentTotal,
     PaymentInterval: terms.paymentInterval,
     ...(terms.gracePeriod && { GracePeriod: terms.gracePeriod }),
-  });
+  };
 
-  const affectedNodes = (result.meta as { AffectedNodes?: Array<{ CreatedNode?: { LedgerEntryType: string; LedgerIndex: string } }> })?.AffectedNodes;
-  const loanNode = affectedNodes?.find((n) => n.CreatedNode?.LedgerEntryType === "Loan");
-  const loanId = loanNode?.CreatedNode?.LedgerIndex ?? result.hash;
+  const result = await client.submitAndWait(tx, { wallet: borrower });
 
-  return loanId;
-}
+  const meta = result.result.meta as { TransactionResult?: string; AffectedNodes?: Array<{ CreatedNode?: { LedgerEntryType: string; LedgerIndex: string } }> } | undefined;
+  if (meta?.TransactionResult !== "tesSUCCESS") {
+    throw new Error(`LoanSet failed: ${meta?.TransactionResult ?? "unknown"}`);
+  }
 
-export async function payLoan(
-  borrower: Wallet,
-  loanId: string,
-  amountDrops: string,
-  flags: number = 0
-): Promise<string> {
-  const client = await getClient();
-
-  const result = await submitRawTx(client, borrower, {
-    TransactionType: "LoanPay",
-    LoanID: loanId,
-    Amount: amountDrops,
-    ...(flags && { Flags: flags }),
-  });
-
-  return result.hash;
-}
-
-export async function manageLoan(
-  broker: Wallet,
-  loanId: string,
-  flags: number
-): Promise<string> {
-  const client = await getClient();
-
-  const result = await submitRawTx(client, broker, {
-    TransactionType: "LoanManage",
-    LoanID: loanId,
-    Flags: flags,
-  });
-
-  return result.hash;
+  const loanNode = meta?.AffectedNodes?.find((n) => n.CreatedNode?.LedgerEntryType === "Loan");
+  return loanNode?.CreatedNode?.LedgerIndex ?? result.result.hash;
 }
 
 export async function deleteLoan(
@@ -108,10 +44,17 @@ export async function deleteLoan(
 ): Promise<void> {
   const client = await getClient();
 
-  await submitRawTx(client, account, {
+  const tx: LoanDelete = {
     TransactionType: "LoanDelete",
+    Account: account.classicAddress,
     LoanID: loanId,
-  });
+  };
+
+  const result = await client.submitAndWait(tx, { wallet: account });
+  const meta = result.result.meta as { TransactionResult?: string } | undefined;
+  if (meta?.TransactionResult !== "tesSUCCESS") {
+    throw new Error(`LoanDelete failed: ${meta?.TransactionResult ?? "unknown"}`);
+  }
 }
 
 export const LOAN_FLAGS = {

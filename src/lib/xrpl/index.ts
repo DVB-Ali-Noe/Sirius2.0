@@ -12,6 +12,7 @@ export {
   holderOptInMPT,
   type DatasetMetadata,
   type DatasetDescription,
+  buildMPTokenMetadata,
 } from "./mpt";
 export {
   issueCredential,
@@ -27,11 +28,7 @@ export {
   withdrawFromVault,
 } from "./vault";
 export {
-  createLoanBroker,
-  loanBrokerCoverDeposit,
   createLoan,
-  payLoan,
-  manageLoan,
   deleteLoan,
   LOAN_FLAGS,
   LOAN_MANAGE_FLAGS,

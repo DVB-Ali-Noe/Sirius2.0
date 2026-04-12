@@ -1,16 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ingestDataset, attachMpt, attachVault, type DatasetDescription } from "@/lib/sirius";
-import {
-  mintDatasetMPT,
-  authorizeMPTHolder,
-  holderOptInMPT,
-  createPermissionedDomain,
-  createLendingPool,
-  depositToVault,
-  getProvider,
-  getLoanBroker,
-  type DatasetMetadata,
-} from "@/lib/xrpl";
+import { ingestDataset, type DatasetDescription } from "@/lib/sirius";
+import { buildMPTokenMetadata, type DatasetMetadata } from "@/lib/xrpl";
 import { requireAuth, apiError, validationError } from "@/lib/api-utils";
 
 export async function POST(request: NextRequest) {
@@ -32,18 +22,15 @@ export async function POST(request: NextRequest) {
     if (body.rows.length > 10000) return validationError("rows (max 10000)");
     if (!body.schema) return validationError("schema");
 
-    const steps: Array<{ step: string; detail: string }> = [];
-
-    // Step 1 — Sirius
+    // Step 1 — Sirius: encrypt + IPFS + ZK proof
     const ingestion = await ingestDataset({
       providerAddress: body.providerAddress,
       description: body.description,
       rows: body.rows,
       schema: body.schema,
     });
-    steps.push({ step: "sirius_ingested", detail: `${ingestion.entryCount} rows, CID: ${ingestion.manifestCid}` });
 
-    // Quality score
+    // Calculate quality score
     const dupRate = parseFloat(ingestion.boundlessProof.assertions.duplicateRate) / 100;
     let qualityScore = 0;
     if (ingestion.entryCount >= 1000) qualityScore += 30;
@@ -53,12 +40,9 @@ export async function POST(request: NextRequest) {
     else if (dupRate < 0.01) qualityScore += 25;
     else if (dupRate < 0.05) qualityScore += 15;
     else if (dupRate < 0.1) qualityScore += 5;
-    qualityScore += 20 + 20;
+    qualityScore += 20;
+    qualityScore += 20;
     qualityScore = Math.min(qualityScore, 100);
-
-    // Step 2 — Mint MPT
-    const provider = getProvider();
-    const loanBroker = getLoanBroker();
 
     const metadata: DatasetMetadata = {
       dataset: body.description,
@@ -75,41 +59,33 @@ export async function POST(request: NextRequest) {
       version: `${new Date().toISOString().slice(0, 10)}-v1`,
     };
 
-    const { mptIssuanceId } = await mintDatasetMPT(provider, metadata);
-    attachMpt(ingestion.datasetId, mptIssuanceId);
-    steps.push({ step: "mpt_minted", detail: mptIssuanceId });
-
-    // Step 3 — Authorize LoanBroker
-    await holderOptInMPT(loanBroker, mptIssuanceId);
-    await authorizeMPTHolder(provider, mptIssuanceId, loanBroker.classicAddress);
-    steps.push({ step: "loanbroker_authorized", detail: "OK" });
-
-    // Step 4 — Vault
-    const domainId = await createPermissionedDomain(loanBroker, [
-      { issuer: loanBroker.classicAddress, credentialType: "DataProviderCertified" },
-    ]);
-    const vaultId = await createLendingPool(loanBroker, mptIssuanceId, domainId);
-    attachVault(ingestion.datasetId, vaultId);
-    steps.push({ step: "vault_created", detail: vaultId });
-
-    // Step 5 — Deposit
-    await depositToVault(provider, vaultId, mptIssuanceId, "1");
-    steps.push({ step: "mpt_deposited", detail: "1 MPT" });
+    const mptMetadataHex = buildMPTokenMetadata(metadata);
 
     return NextResponse.json({
-      success: true,
       datasetId: ingestion.datasetId,
-      mptIssuanceId,
-      vaultId,
-      domainId,
       manifestCid: ingestion.manifestCid,
       merkleRoot: ingestion.merkleRoot,
       entryCount: ingestion.entryCount,
       qualityScore,
-      steps,
+      proof: {
+        proofId: ingestion.boundlessProof.proofId,
+        duplicateRate: ingestion.boundlessProof.assertions.duplicateRate,
+        schemaHash: ingestion.boundlessProof.assertions.schemaHash,
+        commitment: ingestion.boundlessProof.commitment,
+        verifierUri: ingestion.boundlessProof.verifierUri,
+      },
+      metadata,
+      transaction: {
+        TransactionType: "MPTokenIssuanceCreate",
+        Account: body.providerAddress,
+        MaximumAmount: "1",
+        AssetScale: 0,
+        MPTokenMetadata: mptMetadataHex,
+        Flags: 36,
+      },
     });
   } catch (error) {
-    console.error("[provider/upload] Error:", error);
+    console.error("[provider/upload/prepare] Error:", error);
     return apiError(error);
   }
 }

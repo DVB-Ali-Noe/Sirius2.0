@@ -4,9 +4,7 @@ import { useState, useCallback } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useWalletStore } from "@/stores/wallet"
 import { useRouteGuard } from "@/hooks/use-route-guard"
-import { useDatasets } from "@/hooks/use-datasets"
-import { useLoans } from "@/hooks/use-loans"
-import { DatasetCard } from "@/components/dataset/DatasetCard"
+import { useMyDatasets } from "@/hooks/use-my-datasets"
 import { EmptyState } from "@/components/common/EmptyState"
 import { LoadingSpinner } from "@/components/common/LoadingSpinner"
 import { Toast } from "@/components/common/Toast"
@@ -17,17 +15,11 @@ interface FullUploadResult {
   datasetId: string
   mptIssuanceId: string
   vaultId: string
-  domainId: string
+  domainId?: string
   manifestCid: string
-  merkleRoot: string
+  merkleRoot?: string
   entryCount: number
-  proof: {
-    proofId: string
-    duplicateRate: string
-    schemaHash: string
-    commitment: string
-    verifierUri: string
-  }
+  qualityScore?: number
   steps: Array<{ step: string; detail: string }>
 }
 
@@ -45,8 +37,8 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
     if (!file || !name) return
 
     setLoading(true)
-    setCurrentStep("Parsing file...")
     try {
+      setCurrentStep("Parsing file...")
       const text = await file.text()
       const trimmed = text.trim()
       let rows: Record<string, unknown>[]
@@ -69,6 +61,7 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
       setFile(null)
       setCurrentStep("")
       qc.invalidateQueries({ queryKey: ["datasets"] })
+      qc.invalidateQueries({ queryKey: ["onchain-pools"] })
       onSuccess(result)
     } catch (err) {
       setCurrentStep("")
@@ -168,18 +161,13 @@ function Row({ label, value, copy }: { label: string; value: string; copy?: bool
 export default function ProviderPage() {
   const allowed = useRouteGuard("/provider")
   const { address } = useWalletStore()
-  const { data: datasets, isLoading: datasetsLoading } = useDatasets()
-  const { data: loans } = useLoans()
+  const { data: myDatasetsData, isLoading: datasetsLoading } = useMyDatasets()
   const [toast, setToast] = useState<{ msg: string; variant: "success" | "error" } | null>(null)
   const [uploadResult, setUploadResult] = useState<FullUploadResult | null>(null)
 
   if (!allowed) return null
 
-  const myDatasets = datasets?.filter((d) => d.providerAddress === address) ?? []
-
-  const totalRevenue = loans
-    ?.filter((l) => l.provider === address && l.status === "COMPLETED")
-    .reduce((sum, l) => sum + parseFloat(l.principalAmount) * (l.interestRate / 10000), 0) ?? 0
+  const myDatasets = myDatasetsData?.datasets ?? []
 
   return (
     <div className="flex flex-col gap-8">
@@ -191,8 +179,10 @@ export default function ProviderPage() {
             <span className="text-lg font-bold text-foreground">{myDatasets.length}</span>
           </div>
           <div className="flex flex-col items-end">
-            <span className="text-xs text-muted">Revenue</span>
-            <span className="text-lg font-bold text-positive">{totalRevenue.toFixed(2)} XRP</span>
+            <span className="text-xs text-muted">Avg Score</span>
+            <span className="text-lg font-bold text-positive">
+              {myDatasets.length > 0 ? Math.round(myDatasets.reduce((s, d) => s + d.qualityScore, 0) / myDatasets.length) : 0}/100
+            </span>
           </div>
         </div>
       </div>
@@ -215,18 +205,15 @@ export default function ProviderPage() {
                 <Row label="MPT Issuance" value={uploadResult.mptIssuanceId} copy />
                 <Row label="Vault ID" value={uploadResult.vaultId} copy />
                 <Row label="IPFS CID" value={uploadResult.manifestCid} copy />
-                <Row label="Merkle Root" value={uploadResult.merkleRoot} copy />
+                {uploadResult.merkleRoot && <Row label="Merkle Root" value={uploadResult.merkleRoot} copy />}
                 <Row label="Entries" value={String(uploadResult.entryCount)} />
-                <Row label="ZK Proof ID" value={uploadResult.proof.proofId} copy />
-                <Row label="Duplicate Rate" value={uploadResult.proof.duplicateRate} />
-                <Row label="Schema Hash" value={uploadResult.proof.schemaHash} copy />
-                <Row label="Commitment" value={uploadResult.proof.commitment} copy />
+                <Row label="Quality Score" value={`${uploadResult.qualityScore}/100`} />
               </div>
               <div className="mt-2 flex flex-col gap-1">
                 <span className="text-xs text-muted">Steps:</span>
                 {uploadResult.steps.map((s, i) => (
                   <span key={i} className="text-xs text-muted">
-                    {i + 1}. {s.step} — {s.detail}
+                    {i + 1}. {typeof s === "string" ? s : `${s.step} — ${s.detail}`}
                   </span>
                 ))}
               </div>
@@ -244,7 +231,24 @@ export default function ProviderPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {myDatasets.map((d) => (
-              <DatasetCard key={d.datasetId} dataset={d} />
+              <div key={d.mptIssuanceId} className="flex flex-col gap-3 rounded-2xl border border-border bg-surface/50 p-5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-foreground truncate">{d.name}</h3>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 text-xs font-bold"
+                    style={{ borderColor: d.qualityScore >= 80 ? "#34D399" : d.qualityScore >= 50 ? "#FF4D00" : "#F87171", color: d.qualityScore >= 80 ? "#34D399" : d.qualityScore >= 50 ? "#FF4D00" : "#F87171" }}>
+                    {d.qualityScore}
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border border-accent/30 px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-accent">{d.category}</span>
+                  <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] text-muted">{d.entryCount} rows</span>
+                  <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[10px] text-muted">{d.duplicateRate} dups</span>
+                </div>
+                {d.ipfs && (
+                  <span className="text-[10px] text-muted font-mono truncate">IPFS: {d.ipfs}</span>
+                )}
+                <span className="text-[10px] text-positive">ZK Verified</span>
+              </div>
             ))}
           </div>
         )}

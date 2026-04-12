@@ -31,7 +31,7 @@ export interface DatasetMetadata {
   version: string;
 }
 
-function buildMPTokenMetadata(metadata: DatasetMetadata): string {
+export function buildMPTokenMetadata(metadata: DatasetMetadata): string {
   const ticker = metadata.dataset.category
     .replace(/[^A-Z0-9]/gi, "")
     .toUpperCase()

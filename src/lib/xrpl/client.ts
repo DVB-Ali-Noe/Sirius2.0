@@ -1,8 +1,5 @@
 import { Client } from "xrpl";
 import { XRPL_WS_URL } from "./constants";
-import { patchCodecForXLS66 } from "./patch-codec";
-
-patchCodecForXLS66();
 
 let client: Client | null = null;
 let connecting: Promise<Client> | null = null;

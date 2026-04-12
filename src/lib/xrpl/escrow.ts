@@ -1,5 +1,11 @@
 import { Wallet, EscrowCreate, EscrowFinish } from "xrpl";
-import type { EscrowFinishMetadata } from "xrpl/dist/npm/models/transactions/escrowFinish";
+
+// Smart Escrow metadata (mocked — EscrowFinishMetadata not in xrpl 4.6.0)
+interface EscrowFinishMeta {
+  TransactionResult?: string;
+  WasmReturnCode?: number;
+  GasUsed?: number;
+}
 import { readFileSync } from "fs";
 import { join } from "path";
 import { getClient } from "./client";
@@ -75,7 +81,7 @@ export async function finishSmartEscrow(
 
   const result = await client.submitAndWait(tx, { wallet: finisher });
 
-  const meta = result.result.meta as EscrowFinishMetadata & { TransactionResult?: string } | undefined;
+  const meta = result.result.meta as EscrowFinishMeta | undefined;
   if (meta?.TransactionResult !== "tesSUCCESS") {
     throw new Error(`EscrowFinish failed: ${meta?.TransactionResult ?? "unknown"}`);
   }

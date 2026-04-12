@@ -24,7 +24,7 @@
     "ripple-binary-codec": "2.6.0-smartescrow.3",
     "ripple-keypairs": "^2.0.0",
     "three": "^0.183.1",
-    "xrpl": "4.5.0-smartescrow.4",
+    "xrpl": "4.6.0",
     "xrpl-connect": "^0.7.1",
     "zustand": "^5.0.11"
   },

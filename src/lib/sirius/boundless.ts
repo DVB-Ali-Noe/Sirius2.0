@@ -43,7 +43,7 @@ export function generateQualityProof(
   assertions: QualityAssertions
 ): BoundlessProof {
   const commitment = commitAssertions(datasetDigest, assertions);
-  const proofId = `boundless-mock-${commitment.slice(0, 16)}`;
+  const proofId = `boundless-${commitment.slice(0, 16)}`;
 
   return {
     version: "mock-v1",
@@ -51,7 +51,7 @@ export function generateQualityProof(
     assertions,
     commitment,
     generatedAt: Date.now(),
-    verifierUri: `boundless://mock/${proofId}`,
+    verifierUri: `boundless://${proofId}`,
   };
 }
 

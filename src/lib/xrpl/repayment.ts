@@ -1,7 +1,7 @@
-import { Wallet } from "xrpl";
+import { Wallet, Payment } from "xrpl";
+import { getClient } from "./client";
 import { addPayment, getLoan, checkDefault, type LoanRecord } from "./loan-state";
 import { parseXrpToDrops } from "./utils";
-import { payLoan } from "./lending";
 
 export interface RepaymentInfo {
   totalDue: number;
@@ -46,14 +46,28 @@ export function getRepaymentInfo(loanId: string): RepaymentInfo {
 
 export async function makeRepayment(
   borrower: Wallet,
+  loanBrokerAddress: string,
   loanId: string,
   amountXrp: string
 ): Promise<LoanRecord> {
-  const drops = parseXrpToDrops(amountXrp);
-  const txHash = await payLoan(borrower, loanId, drops);
+  const client = await getClient();
+
+  const tx: Payment = {
+    TransactionType: "Payment",
+    Account: borrower.classicAddress,
+    Destination: loanBrokerAddress,
+    Amount: parseXrpToDrops(amountXrp),
+  };
+
+  const result = await client.submitAndWait(tx, { wallet: borrower });
+
+  const meta = result.result.meta as { TransactionResult?: string } | undefined;
+  if (meta?.TransactionResult !== "tesSUCCESS") {
+    throw new Error(`Payment failed on-chain: ${meta?.TransactionResult ?? "unknown"}`);
+  }
 
   return addPayment(loanId, {
-    txHash,
+    txHash: result.result.hash,
     amount: amountXrp,
     timestamp: Date.now(),
   });
