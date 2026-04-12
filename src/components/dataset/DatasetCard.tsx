@@ -42,7 +42,7 @@ function ScoreRing({ score }: { score: number }) {
 export function DatasetCard({ dataset, action, onSelect }: DatasetCardProps) {
   const [certOpen, setCertOpen] = useState(false)
   const catStyle = CATEGORY_COLORS[dataset.description.category] ?? "border-white/20 text-muted"
-  const score = dataset.boundlessProof.assertions.qualityScore
+  const score = dataset.boundlessProof?.assertions?.qualityScore ?? 0
 
   return (
     <>

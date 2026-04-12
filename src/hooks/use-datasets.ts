@@ -13,17 +13,20 @@ interface DatasetDescription {
 }
 
 interface BoundlessProof {
+  version?: string
   proofId: string
-  commitment: string
+  commitment?: string
   assertions: {
     entryCount: number
     duplicateRate: string
-    schemaValid: boolean
-    fieldCompleteness: number
-    schemaHash: string
-    qualityScore: number
+    schema?: string
+    schemaHash?: string
+    schemaValid?: boolean
+    fieldCompleteness?: number
+    qualityScore?: number
   }
-  verifiedAt: number
+  generatedAt?: number
+  verifierUri?: string
 }
 
 export interface Dataset {
@@ -39,6 +42,7 @@ export interface Dataset {
   createdAt: number
   mptIssuanceId?: string
   vaultId?: string
+  loanBrokerId?: string
 }
 
 export function useDatasets() {

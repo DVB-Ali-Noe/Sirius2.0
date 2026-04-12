@@ -1,14 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { WalletConnector } from "@/components/wallet/wallet-connector"
 import { ConnectButton } from "@/components/wallet/connect-button"
 
 export function TopBar({ onMenuClick, onMenuHover }: { onMenuClick: () => void; onMenuHover?: () => void }) {
-  const pathname = usePathname()
-  const showSearch = pathname === "/dashboard"
-
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center gap-4 px-4">
       <div className="flex shrink-0 items-center gap-4">
@@ -26,17 +22,7 @@ export function TopBar({ onMenuClick, onMenuHover }: { onMenuClick: () => void; 
         </Link>
       </div>
 
-      {showSearch ? (
-        <div className="flex flex-1 justify-center px-4">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full max-w-2xl rounded-full border border-white/80 bg-white/5 px-5 py-2 text-sm text-white placeholder-white/40 outline-none backdrop-blur-sm transition-all duration-200"
-          />
-        </div>
-      ) : (
-        <div className="flex-1" />
-      )}
+      <div className="flex-1" />
 
       <div className="shrink-0 flex items-center gap-3">
         <ConnectButton />

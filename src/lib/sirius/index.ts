@@ -54,6 +54,7 @@ export {
 export {
   registerDataset,
   attachMpt,
+  attachVault,
   getDataset,
   getByMpt,
   listDatasets,

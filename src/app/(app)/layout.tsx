@@ -8,6 +8,7 @@ import { TopBar } from "@/components/layout/Header"
 import { Footer, FOOTER_H } from "@/components/layout/Footer"
 import { useWalletStore } from "@/stores/wallet"
 import { getWalletManager } from "@/lib/wallet/manager"
+import { useRoleDetection } from "@/hooks/use-role-detection"
 
 const TOPBAR_H = 80
 
@@ -18,6 +19,8 @@ export default function AppLayout({
 }) {
   const pathname = usePathname()
   const router = useRouter()
+
+  useRoleDetection()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [dezooming, setDezooming] = useState(false)
   const [phase, setPhase] = useState<"pre" | "idle" | "exit" | "enter" | "settle">("pre")
@@ -243,7 +246,7 @@ export default function AppLayout({
                 : { duration: phase === "settle" ? 0.6 : 1.2, ease: phase === "settle" ? [0.25, 0.1, 0.25, 1] : [0.45, 0, 0.1, 1] }
             }
           >
-            <main className="mx-auto w-full max-w-7xl flex-1 min-h-0 px-6 py-3" style={{ paddingBottom: FOOTER_H }}>
+            <main className="mx-auto w-full max-w-7xl flex-1 min-h-0 px-6 py-3 overflow-y-auto" style={{ paddingBottom: FOOTER_H }}>
               {children}
             </main>
           </motion.div>

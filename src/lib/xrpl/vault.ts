@@ -58,7 +58,11 @@ export async function depositToVault(
     Amount: mptAmount,
   };
 
-  await client.submitAndWait(tx, { wallet: depositor });
+  const result = await client.submitAndWait(tx, { wallet: depositor });
+  const meta = result.result.meta as { TransactionResult?: string } | undefined;
+  if (meta?.TransactionResult !== "tesSUCCESS") {
+    throw new Error(`VaultDeposit failed: ${meta?.TransactionResult ?? "unknown"}`);
+  }
 }
 
 export async function createLendingPool(

@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ status: "withdrawn", vaultId: body.vaultId });
   } catch (error) {
+    console.error("[vault] Error:", error);
     return apiError(error);
   }
 }

@@ -26,6 +26,7 @@ export interface DatasetMetadata {
     duplicateRate: string;
     schema: string;
     certifiedAt: number;
+    qualityScore?: number;
   };
   version: string;
 }

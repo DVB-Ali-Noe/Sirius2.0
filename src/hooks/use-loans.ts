@@ -54,6 +54,7 @@ export function useCreateLoan() {
     mutationFn: (input: {
       vaultId: string
       mptIssuanceId: string
+      loanBrokerId?: string
       principalAmount?: string
       interestRate?: number
     }) => apiPost("/api/xrpl/loan", { action: "create", ...input }),

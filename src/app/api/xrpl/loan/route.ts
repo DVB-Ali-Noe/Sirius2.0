@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
       gracePeriod?: number;
       vaultId?: string;
       mptIssuanceId?: string;
+      loanBrokerId?: string;
     };
 
     if (body.action !== "create" && body.action !== "delete") {
@@ -42,8 +43,12 @@ export async function POST(request: NextRequest) {
       const paymentInterval = body.paymentInterval ?? 2592000;
       const gracePeriod = body.gracePeriod ?? 86400;
 
+      if (!body.loanBrokerId) {
+        return validationError("loanBrokerId (Hash256 of the LoanBroker ledger object)");
+      }
+
       const loanId = await createLoan(borrower, {
-        loanBrokerId: loanBroker.classicAddress,
+        loanBrokerId: body.loanBrokerId,
         principalAmount,
         interestRate,
         paymentTotal,

@@ -26,9 +26,12 @@ export async function createPermissionedDomain(
 
   const result = await client.submitAndWait(tx, { wallet: owner });
 
-  const createdNode = (
-    result.result.meta as { AffectedNodes?: Array<{ CreatedNode?: { LedgerEntryType: string; LedgerIndex: string } }> }
-  )?.AffectedNodes?.find(
+  const meta = result.result.meta as { TransactionResult?: string; AffectedNodes?: Array<{ CreatedNode?: { LedgerEntryType: string; LedgerIndex: string } }> };
+  if (meta?.TransactionResult !== "tesSUCCESS") {
+    throw new Error(`PermissionedDomain tx failed: ${meta?.TransactionResult ?? "unknown"}`);
+  }
+
+  const createdNode = meta?.AffectedNodes?.find(
     (n) => n.CreatedNode?.LedgerEntryType === "PermissionedDomain"
   );
 

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useQuery } from "@tanstack/react-query"
 import { useRouteGuard } from "@/hooks/use-route-guard"
 import { useDatasets } from "@/hooks/use-datasets"
 import { useCreateLoan } from "@/hooks/use-loans"
@@ -12,7 +13,31 @@ import { Modal } from "@/components/common/Modal"
 import { LoadingSpinner } from "@/components/common/LoadingSpinner"
 import { EmptyState } from "@/components/common/EmptyState"
 import { Toast } from "@/components/common/Toast"
-import { apiPost } from "@/lib/api-client"
+import { apiPost, apiGet } from "@/lib/api-client"
+
+interface OnChainPool {
+  vaultId: string
+  mptIssuanceId: string
+  loanBrokerId: string | null
+  dataset: {
+    name: string
+    ipfs: string
+    category: string
+    qualityCertificate: Record<string, unknown>
+    qualityScore: number
+    zkProof: string
+    schema: string
+  } | null
+  issuer: string
+}
+
+function useOnChainPools() {
+  return useQuery({
+    queryKey: ["onchain-pools"],
+    queryFn: () => apiGet<{ pools: OnChainPool[]; count: number }>("/api/xrpl/pools"),
+    refetchInterval: 15_000,
+  })
+}
 import { TxLink } from "@/components/common/TxLink"
 import type { Dataset } from "@/hooks/use-datasets"
 
@@ -40,6 +65,7 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
       const result = await createLoan.mutateAsync({
         vaultId: dataset.vaultId,
         mptIssuanceId: dataset.mptIssuanceId,
+        loanBrokerId: dataset.loanBrokerId,
         principalAmount: "1",
         interestRate: 500,
       }) as { loanId: string }
@@ -202,23 +228,62 @@ function PoolCard({ vaultId, datasets, onSelect }: {
 export default function MarketplacePage() {
   const allowed = useRouteGuard("/marketplace")
   const router = useRouter()
-  const { data: datasets, isLoading } = useDatasets()
+  const { data: datasets, isLoading: datasetsLoading } = useDatasets()
+  const { data: poolsData, isLoading: poolsLoading } = useOnChainPools()
   const { connected } = useWalletStore()
   const [selectedVault, setSelectedVault] = useState<string | null>(null)
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null)
   const [detailDataset, setDetailDataset] = useState<Dataset | null>(null)
 
+  const isLoading = datasetsLoading || poolsLoading
+
   if (!allowed) return null
 
-  const available = datasets?.filter((d) => d.mptIssuanceId) ?? []
-
+  // Build vault groups from on-chain data
   const vaultGroups = new Map<string, Dataset[]>()
-  for (const d of available) {
-    if (d.vaultId) {
-      const group = vaultGroups.get(d.vaultId) ?? []
-      group.push(d)
-      vaultGroups.set(d.vaultId, group)
+  const onChainPools = poolsData?.pools ?? []
+
+  for (const pool of onChainPools) {
+    // Try to find matching dataset from Sirius registry
+    const siriusDataset = datasets?.find((d) => d.mptIssuanceId === pool.mptIssuanceId)
+
+    const dataset: Dataset = siriusDataset ?? {
+      datasetId: pool.mptIssuanceId,
+      providerAddress: pool.issuer,
+      description: {
+        name: pool.dataset?.name ?? "On-chain Dataset",
+        category: pool.dataset?.category ?? "defi",
+        format: "jsonl",
+        language: "en",
+      },
+      manifestCid: pool.dataset?.ipfs ?? "",
+      merkleRoot: "",
+      entryCount: (pool.dataset?.qualityCertificate?.entryCount as number) ?? 0,
+      schemaHash: pool.dataset?.schema ?? "",
+      boundlessProof: {
+        version: "on-chain",
+        proofId: pool.dataset?.zkProof ?? "",
+        assertions: {
+          entryCount: (pool.dataset?.qualityCertificate?.entryCount as number) ?? 0,
+          duplicateRate: String(pool.dataset?.qualityCertificate?.duplicateRate ?? "0%"),
+          schema: String(pool.dataset?.qualityCertificate?.schema ?? ""),
+          schemaHash: pool.dataset?.schema ?? "",
+          qualityScore: pool.dataset?.qualityScore ?? 0,
+        },
+        commitment: "",
+        generatedAt: 0,
+        verifierUri: pool.dataset?.zkProof ?? "",
+      },
+      version: "on-chain",
+      createdAt: 0,
+      mptIssuanceId: pool.mptIssuanceId,
+      vaultId: pool.vaultId,
+      loanBrokerId: pool.loanBrokerId ?? undefined,
     }
+
+    const group = vaultGroups.get(pool.vaultId) ?? []
+    group.push(dataset)
+    vaultGroups.set(pool.vaultId, group)
   }
 
   const selectedPoolDatasets = selectedVault ? vaultGroups.get(selectedVault) ?? [] : []

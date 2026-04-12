@@ -51,6 +51,13 @@ export function attachMpt(datasetId: string, mptIssuanceId: string): DatasetReco
   return r;
 }
 
+export function attachVault(datasetId: string, vaultId: string): DatasetRecord {
+  const r = datasets.get(datasetId);
+  if (!r) throw new Error(`Dataset ${datasetId} not found`);
+  r.vaultId = vaultId;
+  return r;
+}
+
 export function getDataset(datasetId: string): DatasetRecord | undefined {
   return datasets.get(datasetId);
 }

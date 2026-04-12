@@ -15,14 +15,10 @@ interface WalletState {
   setRole: (role: WalletRole) => void;
 }
 
-function detectRole(address: string): WalletRole {
+function detectInitialRole(address: string): WalletRole {
   const loanBrokerAddress = process.env.NEXT_PUBLIC_LOANBROKER_ADDRESS;
-  const providerAddress = process.env.NEXT_PUBLIC_PROVIDER_ADDRESS;
-  const borrowerAddress = process.env.NEXT_PUBLIC_BORROWER_ADDRESS;
-
   if (loanBrokerAddress && address === loanBrokerAddress) return "loanbroker";
-  if (providerAddress && address === providerAddress) return "provider";
-  if (borrowerAddress && address === borrowerAddress) return "borrower";
+  // Provider/borrower roles are detected from on-chain credentials via useRoleDetection hook
   return null;
 }
 
@@ -40,7 +36,7 @@ export const useWalletStore = create<WalletState>()(
           network,
           connected: true,
           connecting: false,
-          role: detectRole(address),
+          role: detectInitialRole(address),
         }),
       setDisconnected: () =>
         set({ address: null, network: null, connected: false, connecting: false, role: null }),
@@ -53,7 +49,6 @@ export const useWalletStore = create<WalletState>()(
         address: state.address,
         network: state.network,
         connected: state.connected,
-        role: state.role,
       }),
     }
   )

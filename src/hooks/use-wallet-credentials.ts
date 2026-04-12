@@ -2,46 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useWalletStore } from "@/stores/wallet";
-import { XRPL_JSON_RPC_URL } from "@/lib/xrpl/constants";
+import { apiGet } from "@/lib/api-client";
 
 interface Credential {
   credentialType: string;
   issuer: string;
   subject: string;
-}
-
-async function fetchCredentials(address: string): Promise<Credential[]> {
-  const res = await fetch(
-    XRPL_JSON_RPC_URL,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        method: "account_objects",
-        params: [
-          {
-            account: address,
-            type: "credential",
-            ledger_index: "validated",
-          },
-        ],
-      }),
-    }
-  );
-
-  const data = await res.json();
-  const objects = data.result?.account_objects ?? [];
-
-  return objects.map((obj: { CredentialType?: string; Issuer: string; Subject: string }) => {
-    let credentialType = obj.CredentialType ?? "";
-    try {
-      const bytes = new Uint8Array(
-        (credentialType.match(/.{1,2}/g) ?? []).map((b) => parseInt(b, 16))
-      );
-      credentialType = new TextDecoder().decode(bytes);
-    } catch {}
-    return { credentialType, issuer: obj.Issuer, subject: obj.Subject };
-  });
+  accepted: boolean;
 }
 
 export function useWalletCredentials() {
@@ -49,8 +16,11 @@ export function useWalletCredentials() {
 
   return useQuery({
     queryKey: ["wallet-credentials", address],
-    queryFn: () => fetchCredentials(address!),
+    queryFn: () =>
+      apiGet<{ credentials: Credential[] }>(
+        `/api/xrpl/credentials/check?address=${address}`
+      ).then((r) => r.credentials),
     enabled: connected && !!address,
-    refetchInterval: 30_000,
+    refetchInterval: 15_000,
   });
 }
