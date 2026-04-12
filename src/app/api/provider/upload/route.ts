@@ -7,6 +7,7 @@ import {
   createPermissionedDomain,
   createLendingPool,
   depositToVault,
+  createLoanBroker,
   getProvider,
   getLoanBroker,
   type DatasetMetadata,
@@ -95,6 +96,10 @@ export async function POST(request: NextRequest) {
     // Step 5 — Deposit
     await depositToVault(provider, vaultId, mptIssuanceId, "1");
     steps.push({ step: "mpt_deposited", detail: "1 MPT" });
+
+    // Step 6 — Create LoanBroker
+    const loanBrokerId = await createLoanBroker(loanBroker, vaultId);
+    steps.push({ step: "loan_broker_created", detail: loanBrokerId });
 
     return NextResponse.json({
       success: true,

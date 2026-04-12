@@ -28,6 +28,7 @@ export {
   withdrawFromVault,
 } from "./vault";
 export {
+  createLoanBroker,
   createLoan,
   deleteLoan,
   LOAN_FLAGS,

@@ -50,6 +50,7 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
   onComplete: () => void
 }) {
   const [duration, setDuration] = useState("30")
+  const { address } = useWalletStore()
   const createLoan = useCreateLoan()
   const [step, setStep] = useState<FlowStep>("idle")
   const [txHash, setTxHash] = useState<string | null>(null)
@@ -66,6 +67,7 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
         vaultId: dataset.vaultId,
         mptIssuanceId: dataset.mptIssuanceId,
         loanBrokerId: dataset.loanBrokerId,
+        borrowerAddress: address ?? "",
         principalAmount: "1",
         interestRate: 500,
       }) as { loanId: string }
@@ -230,7 +232,7 @@ export default function MarketplacePage() {
   const router = useRouter()
   const { data: datasets, isLoading: datasetsLoading } = useDatasets()
   const { data: poolsData, isLoading: poolsLoading } = useOnChainPools()
-  const { connected } = useWalletStore()
+  const { connected, address } = useWalletStore()
   const [selectedVault, setSelectedVault] = useState<string | null>(null)
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null)
   const [detailDataset, setDetailDataset] = useState<Dataset | null>(null)
@@ -243,7 +245,7 @@ export default function MarketplacePage() {
   const vaultGroups = new Map<string, Dataset[]>()
   const onChainPools = poolsData?.pools ?? []
 
-  for (const pool of onChainPools) {
+  for (const pool of onChainPools.filter((p) => p.loanBrokerId)) {
     // Try to find matching dataset from Sirius registry
     const siriusDataset = datasets?.find((d) => d.mptIssuanceId === pool.mptIssuanceId)
 

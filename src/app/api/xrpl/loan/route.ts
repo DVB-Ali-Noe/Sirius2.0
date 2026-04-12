@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   createLoan,
   deleteLoan,
-  getBorrower,
   getLoanBroker,
   getProvider,
   createLoanRecord,
@@ -27,27 +26,30 @@ export async function POST(request: NextRequest) {
       vaultId?: string;
       mptIssuanceId?: string;
       loanBrokerId?: string;
+      borrowerAddress?: string;
     };
 
     if (body.action !== "create" && body.action !== "delete") {
       return validationError("action (create | delete)");
     }
 
-    const borrower = getBorrower();
     const loanBroker = getLoanBroker();
 
     if (body.action === "create") {
+      if (!body.loanBrokerId) {
+        return validationError("loanBrokerId");
+      }
+      if (!body.borrowerAddress) {
+        return validationError("borrowerAddress");
+      }
+
       const principalAmount = body.principalAmount ?? "1";
       const interestRate = body.interestRate ?? 500;
       const paymentTotal = body.paymentTotal ?? 1;
       const paymentInterval = body.paymentInterval ?? 2592000;
       const gracePeriod = body.gracePeriod ?? 86400;
 
-      if (!body.loanBrokerId) {
-        return validationError("loanBrokerId (Hash256 of the LoanBroker ledger object)");
-      }
-
-      const loanId = await createLoan(borrower, {
+      const loanId = await createLoan(loanBroker, body.borrowerAddress, {
         loanBrokerId: body.loanBrokerId,
         principalAmount,
         interestRate,
@@ -56,12 +58,10 @@ export async function POST(request: NextRequest) {
         gracePeriod,
       });
 
-      const provider = getProvider();
-
       createLoanRecord({
         loanId,
-        borrower: borrower.classicAddress,
-        provider: provider.classicAddress,
+        borrower: body.borrowerAddress,
+        provider: "",
         loanBroker: loanBroker.classicAddress,
         vaultId: body.vaultId ?? "",
         mptIssuanceId: body.mptIssuanceId ?? "",
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     terminateLoanAccess(body.loanId, "loan_deleted");
-    await deleteLoan(borrower, body.loanId);
+    await deleteLoan(loanBroker, body.loanId);
 
     return NextResponse.json({ status: "deleted", loanId: body.loanId });
   } catch (error) {

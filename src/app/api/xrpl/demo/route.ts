@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     ]);
     steps.push({ step: "events_subscribed", result: "ok" });
 
-    const loanId = await createLoan(borrower, {
+    const loanId = await createLoan(loanBroker, borrower.classicAddress, {
       loanBrokerId: loanBroker.classicAddress,
       principalAmount: "1",
       interestRate: 500,

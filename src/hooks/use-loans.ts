@@ -55,6 +55,7 @@ export function useCreateLoan() {
       vaultId: string
       mptIssuanceId: string
       loanBrokerId?: string
+      borrowerAddress?: string
       principalAmount?: string
       interestRate?: number
     }) => apiPost("/api/xrpl/loan", { action: "create", ...input }),

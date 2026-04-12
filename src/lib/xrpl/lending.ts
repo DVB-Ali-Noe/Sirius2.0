@@ -1,5 +1,30 @@
-import { Wallet, LoanSet, LoanDelete } from "xrpl";
+import { Wallet, LoanSet, LoanDelete, LoanBrokerSet } from "xrpl";
 import { getClient } from "./client";
+
+export async function createLoanBroker(
+  owner: Wallet,
+  vaultId: string,
+  managementFeeRate: number = 1000
+): Promise<string> {
+  const client = await getClient();
+
+  const tx: LoanBrokerSet = {
+    TransactionType: "LoanBrokerSet",
+    Account: owner.classicAddress,
+    VaultID: vaultId,
+    ManagementFeeRate: managementFeeRate,
+  };
+
+  const result = await client.submitAndWait(tx, { wallet: owner });
+
+  const meta = result.result.meta as { TransactionResult?: string; AffectedNodes?: Array<{ CreatedNode?: { LedgerEntryType: string; LedgerIndex: string } }> } | undefined;
+  if (meta?.TransactionResult !== "tesSUCCESS") {
+    throw new Error(`LoanBrokerSet failed: ${meta?.TransactionResult ?? "unknown"}`);
+  }
+
+  const brokerNode = meta?.AffectedNodes?.find((n) => n.CreatedNode?.LedgerEntryType === "LoanBroker");
+  return brokerNode?.CreatedNode?.LedgerIndex ?? result.result.hash;
+}
 
 interface LoanTerms {
   loanBrokerId: string;
@@ -11,15 +36,17 @@ interface LoanTerms {
 }
 
 export async function createLoan(
-  borrower: Wallet,
+  loanBrokerWallet: Wallet,
+  borrowerAddress: string,
   terms: LoanTerms
 ): Promise<string> {
   const client = await getClient();
 
   const tx: LoanSet = {
     TransactionType: "LoanSet",
-    Account: borrower.classicAddress,
+    Account: loanBrokerWallet.classicAddress,
     LoanBrokerID: terms.loanBrokerId,
+    Counterparty: borrowerAddress,
     PrincipalRequested: terms.principalAmount,
     InterestRate: terms.interestRate,
     PaymentTotal: terms.paymentTotal,
@@ -27,7 +54,7 @@ export async function createLoan(
     ...(terms.gracePeriod && { GracePeriod: terms.gracePeriod }),
   };
 
-  const result = await client.submitAndWait(tx, { wallet: borrower });
+  const result = await client.submitAndWait(tx, { wallet: loanBrokerWallet });
 
   const meta = result.result.meta as { TransactionResult?: string; AffectedNodes?: Array<{ CreatedNode?: { LedgerEntryType: string; LedgerIndex: string } }> } | undefined;
   if (meta?.TransactionResult !== "tesSUCCESS") {
