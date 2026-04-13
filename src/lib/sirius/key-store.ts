@@ -14,8 +14,11 @@ export interface BorrowerKey {
   revokedReason?: string;
 }
 
-const keys = new Map<string, BorrowerKey>();
-const byLoanId = new Map<string, string>();
+const g = globalThis as unknown as { __sirius_keys?: Map<string, BorrowerKey>; __sirius_keys_byLoanId?: Map<string, string> };
+const keys: Map<string, BorrowerKey> = g.__sirius_keys ?? new Map<string, BorrowerKey>();
+const byLoanId: Map<string, string> = g.__sirius_keys_byLoanId ?? new Map<string, string>();
+g.__sirius_keys = keys;
+g.__sirius_keys_byLoanId = byLoanId;
 
 export interface IssueParams {
   borrower: string;

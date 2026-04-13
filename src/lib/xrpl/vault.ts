@@ -84,15 +84,18 @@ export async function createLendingPool(
 
   const result = await client.submitAndWait(tx, { wallet: loanBroker });
 
-  const createdNode = (
-    result.result.meta as { AffectedNodes?: Array<{ CreatedNode?: { LedgerEntryType: string; LedgerIndex: string } }> }
-  )?.AffectedNodes?.find(
+  const meta = result.result.meta as { TransactionResult?: string; AffectedNodes?: Array<{ CreatedNode?: { LedgerEntryType: string; LedgerIndex: string } }> } | undefined;
+  if (meta?.TransactionResult !== "tesSUCCESS") {
+    throw new Error(`Lending pool creation failed: ${meta?.TransactionResult ?? "unknown"}`);
+  }
+
+  const createdNode = meta?.AffectedNodes?.find(
     (n) => n.CreatedNode?.LedgerEntryType === "Vault"
   );
 
   const vaultId = createdNode?.CreatedNode?.LedgerIndex;
   if (!vaultId) {
-    throw new Error("Lending pool creation failed: no vault ID");
+    throw new Error("Lending pool creation failed: no vault ID in meta");
   }
 
   return vaultId;

@@ -32,8 +32,11 @@ export interface DatasetRecord {
   vaultId?: string;
 }
 
-const datasets = new Map<string, DatasetRecord>();
-const byMpt = new Map<string, string>();
+const g = globalThis as unknown as { __sirius_datasets?: Map<string, DatasetRecord>; __sirius_byMpt?: Map<string, string> };
+const datasets: Map<string, DatasetRecord> = g.__sirius_datasets ?? new Map<string, DatasetRecord>();
+const byMpt: Map<string, string> = g.__sirius_byMpt ?? new Map<string, string>();
+g.__sirius_datasets = datasets;
+g.__sirius_byMpt = byMpt;
 
 export function registerDataset(record: DatasetRecord): DatasetRecord {
   datasets.set(record.datasetId, record);

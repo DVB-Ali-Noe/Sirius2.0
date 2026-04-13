@@ -32,7 +32,9 @@ export interface PaymentRecord {
   timestamp: number;
 }
 
-const loans = new Map<string, LoanRecord>();
+const globalStore = globalThis as unknown as { __sirius_loans?: Map<string, LoanRecord> };
+const loans: Map<string, LoanRecord> = globalStore.__sirius_loans ?? new Map<string, LoanRecord>();
+globalStore.__sirius_loans = loans;
 
 const VALID_TRANSITIONS: Record<LoanStatus, LoanStatus[]> = {
   PENDING: ["ACTIVE"],

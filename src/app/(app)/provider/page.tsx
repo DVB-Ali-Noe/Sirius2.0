@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/common/EmptyState"
 import { LoadingSpinner } from "@/components/common/LoadingSpinner"
 import { Toast } from "@/components/common/Toast"
 import { apiPost } from "@/lib/api-client"
+import { XRPL_EXPLORER_URL } from "@/lib/xrpl-constants"
 
 interface FullUploadResult {
   success: boolean
@@ -31,6 +32,20 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
   const [loading, setLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState("")
   const qc = useQueryClient()
+
+  const loadDemo = async () => {
+    try {
+      const res = await fetch("/demo-dataset.json")
+      const blob = await res.blob()
+      const demoFile = new File([blob], "instruction-tuning-1000.json", { type: "application/json" })
+      setFile(demoFile)
+      setName("GPT-4 Instruction Tuning Dataset")
+      setCategory("instruction-tuning")
+      setSchema("openai-chat-v1")
+    } catch {
+      onError("Failed to load demo dataset")
+    }
+  }
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault()
@@ -126,13 +141,23 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
         />
       </label>
 
-      <button
-        type="submit"
-        disabled={!name || !file || loading}
-        className="rounded-full border border-white/80 bg-white/5 px-6 py-2.5 text-sm uppercase tracking-widest text-white backdrop-blur-sm transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer hover:bg-white/10"
-      >
-        {loading ? "Processing..." : "Upload & Certify"}
-      </button>
+      <div className="flex gap-3">
+        <button
+          type="submit"
+          disabled={!name || !file || loading}
+          className="flex-1 rounded-full border border-white/80 bg-white/5 px-6 py-2.5 text-sm uppercase tracking-widest text-white backdrop-blur-sm transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer hover:bg-white/10"
+        >
+          {loading ? "Processing..." : "Upload & Certify"}
+        </button>
+        <button
+          type="button"
+          onClick={loadDemo}
+          disabled={loading}
+          className="rounded-full border border-accent/40 bg-accent/10 px-4 py-2.5 text-xs uppercase tracking-widest text-accent transition-colors hover:bg-accent/20 disabled:opacity-30 cursor-pointer"
+        >
+          Load Demo
+        </button>
+      </div>
     </form>
   )
 }
@@ -209,6 +234,19 @@ export default function ProviderPage() {
                 <Row label="Entries" value={String(uploadResult.entryCount)} />
                 <Row label="Quality Score" value={`${uploadResult.qualityScore}/100`} />
               </div>
+              <a
+                href={`${XRPL_EXPLORER_URL}/${uploadResult.mptIssuanceId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-4 py-2 text-xs uppercase tracking-widest text-accent transition-colors hover:bg-accent/20 w-fit"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+                View on XRPL Explorer
+              </a>
               <div className="mt-2 flex flex-col gap-1">
                 <span className="text-xs text-muted">Steps:</span>
                 {uploadResult.steps.map((s, i) => (
@@ -247,7 +285,10 @@ export default function ProviderPage() {
                 {d.ipfs && (
                   <span className="text-[10px] text-muted font-mono truncate">IPFS: {d.ipfs}</span>
                 )}
-                <span className="text-[10px] text-positive">ZK Verified</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] text-positive">ZK Verified</span>
+                  <a href={`${XRPL_EXPLORER_URL}/${d.mptIssuanceId}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-accent hover:underline">Explorer</a>
+                </div>
               </div>
             ))}
           </div>

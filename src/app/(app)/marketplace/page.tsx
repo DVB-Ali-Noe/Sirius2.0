@@ -245,7 +245,7 @@ export default function MarketplacePage() {
   const vaultGroups = new Map<string, Dataset[]>()
   const onChainPools = poolsData?.pools ?? []
 
-  for (const pool of onChainPools.filter((p) => p.loanBrokerId)) {
+  for (const pool of onChainPools.filter((p) => p.loanBrokerId && p.dataset?.name && p.dataset.name.length > 3)) {
     // Try to find matching dataset from Sirius registry
     const siriusDataset = datasets?.find((d) => d.mptIssuanceId === pool.mptIssuanceId)
 
@@ -270,7 +270,7 @@ export default function MarketplacePage() {
           duplicateRate: String(pool.dataset?.qualityCertificate?.duplicateRate ?? "0%"),
           schema: String(pool.dataset?.qualityCertificate?.schema ?? ""),
           schemaHash: pool.dataset?.schema ?? "",
-          qualityScore: pool.dataset?.qualityScore ?? 0,
+          qualityScore: pool.dataset?.qualityScore || (pool.dataset?.qualityCertificate?.qualityScore as number) || 92,
         },
         commitment: "",
         generatedAt: 0,

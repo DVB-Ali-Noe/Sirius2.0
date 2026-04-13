@@ -36,6 +36,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ credentials });
   } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes("Account not found") || msg.includes("actNotFound")) {
+      return NextResponse.json({ credentials: [] });
+    }
     return apiError(error);
   }
 }
