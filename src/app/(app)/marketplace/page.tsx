@@ -17,6 +17,8 @@ import { apiPost, apiGet } from "@/lib/api-client"
 
 interface OnChainPool {
   vaultId: string
+  vaultName: string | null
+  pricePerDay: string | null
   mptIssuanceId: string
   loanBrokerId: string | null
   dataset: {
@@ -27,8 +29,10 @@ interface OnChainPool {
     qualityScore: number
     zkProof: string
     schema: string
+    pricePerDay: string | null
   } | null
   issuer: string
+  ledgerSeq: number
 }
 
 function useOnChainPools() {
@@ -183,6 +187,7 @@ function PoolCard({ vaultId, datasets, onSelect }: {
   const avgScore = datasets.reduce((s, d) => s + (d.boundlessProof?.assertions?.qualityScore ?? 0), 0) / datasets.length
   const totalRows = datasets.reduce((s, d) => s + d.entryCount, 0)
   const categories = [...new Set(datasets.map((d) => d.description.category))]
+  const poolName = datasets[0]?.description?.name ?? "On-chain Dataset"
 
   return (
     <button
@@ -192,7 +197,8 @@ function PoolCard({ vaultId, datasets, onSelect }: {
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
           <span className="text-xs text-muted">Lending Pool</span>
-          <span className="text-sm font-mono text-foreground">{vaultId.slice(0, 10)}...{vaultId.slice(-6)}</span>
+          <span className="text-sm font-semibold text-foreground truncate max-w-[220px]">{poolName}</span>
+          <span className="text-[10px] font-mono text-muted">{vaultId.slice(0, 8)}...{vaultId.slice(-4)}</span>
         </div>
         <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-muted transition-colors group-hover:border-accent/40 group-hover:text-accent">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -245,7 +251,11 @@ export default function MarketplacePage() {
   const vaultGroups = new Map<string, Dataset[]>()
   const onChainPools = poolsData?.pools ?? []
 
-  for (const pool of onChainPools.filter((p) => p.loanBrokerId && p.dataset?.name && p.dataset.name.length > 3)) {
+  for (const pool of onChainPools.filter((p) => {
+    if (!p.loanBrokerId) return false
+    const displayName = p.vaultName ?? p.dataset?.name ?? ""
+    return displayName.length > 3
+  })) {
     // Try to find matching dataset from Sirius registry
     const siriusDataset = datasets?.find((d) => d.mptIssuanceId === pool.mptIssuanceId)
 
@@ -253,7 +263,7 @@ export default function MarketplacePage() {
       datasetId: pool.mptIssuanceId,
       providerAddress: pool.issuer,
       description: {
-        name: pool.dataset?.name ?? "On-chain Dataset",
+        name: pool.vaultName ?? pool.dataset?.name ?? "On-chain Dataset",
         category: pool.dataset?.category ?? "defi",
         format: "jsonl",
         language: "en",

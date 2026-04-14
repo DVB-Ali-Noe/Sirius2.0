@@ -14,6 +14,7 @@ export interface DatasetDescription {
   language: string;
   format: string;
   sampleFields?: string[];
+  pricePerDay?: string;
 }
 
 export interface DatasetMetadata {
@@ -40,13 +41,12 @@ export function buildMPTokenMetadata(metadata: DatasetMetadata): string {
   const structured = {
     t: ticker,
     n: metadata.dataset.name,
-    i: "https://sirius.protocol/mpt-icon.png",
     ac: "defi",
     in: "Sirius Protocol",
     ipfs: metadata.ipfsHash,
     zk: metadata.zkProofRef,
     schema: metadata.schemaHash,
-    qc: metadata.qualityCertificate,
+    qc: { ...metadata.qualityCertificate, ppd: metadata.dataset.pricePerDay ?? "0.5" },
     v: metadata.version,
   }
 

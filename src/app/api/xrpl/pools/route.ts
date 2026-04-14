@@ -4,6 +4,8 @@ import { apiError } from "@/lib/api-utils";
 
 interface PoolInfo {
   vaultId: string;
+  vaultName: string | null;
+  pricePerDay: string | null;
   mptIssuanceId: string;
   loanBrokerId: string | null;
   dataset: {
@@ -14,8 +16,30 @@ interface PoolInfo {
     qualityScore: number;
     zkProof: string;
     schema: string;
+    pricePerDay: string | null;
   } | null;
   issuer: string;
+  ledgerSeq: number;
+}
+
+function decodeVaultData(dataHex: unknown): { name: string | null; pricePerDay: string | null } {
+  if (typeof dataHex !== "string" || dataHex.length === 0) {
+    return { name: null, pricePerDay: null };
+  }
+  try {
+    const raw = Buffer.from(dataHex, "hex").toString("utf-8");
+    try {
+      const parsed = JSON.parse(raw) as { name?: string; pricePerDay?: string };
+      return {
+        name: parsed.name ?? null,
+        pricePerDay: parsed.pricePerDay ?? null,
+      };
+    } catch {
+      return { name: raw, pricePerDay: null };
+    }
+  } catch {
+    return { name: null, pricePerDay: null };
+  }
 }
 
 export async function GET() {
@@ -46,6 +70,8 @@ export async function GET() {
       const mptId = asset?.mpt_issuance_id;
       if (!mptId) continue;
 
+      const { name: vaultName, pricePerDay: vaultPricePerDay } = decodeVaultData(vault.Data);
+
       // Fetch the MPT issuance from the ledger to get issuer + metadata
       let dataset: PoolInfo["dataset"] = null;
       let issuer = "";
@@ -72,6 +98,7 @@ export async function GET() {
               qualityScore: meta.qc?.qualityScore ?? 0,
               zkProof: meta.zk ?? "",
               schema: meta.schema ?? "",
+              pricePerDay: meta.qc?.ppd ?? meta.ppd ?? null,
             };
           } catch {}
         }
@@ -79,12 +106,17 @@ export async function GET() {
 
       pools.push({
         vaultId: vault.index as string,
+        vaultName: vaultName ?? dataset?.name ?? null,
+        pricePerDay: vaultPricePerDay ?? dataset?.pricePerDay ?? null,
         mptIssuanceId: mptId,
         loanBrokerId: vaultToBroker.get(vault.index as string) ?? null,
         dataset,
         issuer,
+        ledgerSeq: Number(vault.PreviousTxnLgrSeq ?? 0),
       });
     }
+
+    pools.sort((a, b) => b.ledgerSeq - a.ledgerSeq);
 
     return NextResponse.json({ pools, count: pools.length });
   } catch (error) {

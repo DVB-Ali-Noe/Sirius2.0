@@ -55,6 +55,18 @@ export function issueBorrowerKey(params: IssueParams): BorrowerKey {
   return record;
 }
 
+export function extendKey(loanId: string, additionalMs: number): BorrowerKey | null {
+  const keyId = byLoanId.get(loanId);
+  if (!keyId) return null;
+  const record = keys.get(keyId);
+  if (!record) return null;
+  if (record.revoked) return null;
+
+  const base = record.expiresAt > Date.now() ? record.expiresAt : Date.now();
+  record.expiresAt = base + additionalMs;
+  return record;
+}
+
 export function revokeByLoan(loanId: string, reason: string): BorrowerKey | null {
   const keyId = byLoanId.get(loanId);
   if (!keyId) return null;
