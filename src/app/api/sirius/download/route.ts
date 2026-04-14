@@ -64,17 +64,6 @@ export async function POST(request: NextRequest) {
     const limit = Math.max(1, Math.min(1000, body.limit ?? 100));
     const slice = rows.slice(0, limit);
 
-    if (body.applyWatermark === false) {
-      return NextResponse.json({
-        datasetId: dataset.datasetId,
-        loanId: body.loanId,
-        rows: slice,
-        totalRows: rows.length,
-        returned: slice.length,
-        watermark: null,
-      });
-    }
-
     const seed = generateSeed(key.borrower, body.loanId, dataset.datasetId);
     const { rows: watermarked, report } = applyWatermark(slice, seed);
 

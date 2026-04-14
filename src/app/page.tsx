@@ -162,9 +162,8 @@ export default function Home() {
     lenis.start();
 
     lenis.on("scroll", ScrollTrigger.update);
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
+    const rafFn = (time: number) => lenis.raf(time * 1000);
+    gsap.ticker.add(rafFn);
     gsap.ticker.lagSmoothing(0);
 
     const scrollProgressRef = { current: 0 };
@@ -200,7 +199,7 @@ export default function Home() {
       ScrollTrigger.getAll().forEach(t => t.kill());
       ScrollTrigger.clearScrollMemory();
       ScrollTrigger.refresh();
-      gsap.ticker.remove(lenis.raf);
+      gsap.ticker.remove(rafFn);
       document.querySelectorAll(".pin-spacer").forEach(el => {
         const child = el.firstElementChild;
         if (child) el.parentNode?.replaceChild(child, el);

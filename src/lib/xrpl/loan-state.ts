@@ -89,7 +89,7 @@ export function addPayment(loanId: string, payment: PaymentRecord): LoanRecord {
   const principal = parseFloat(loan.principalAmount);
   const totalDueDrops = Math.round(principal * (1 + loan.interestRate / 10000) * 1_000_000);
 
-  if (totalPaidDrops >= totalDueDrops || loan.payments.length >= loan.paymentTotal) {
+  if (totalPaidDrops >= totalDueDrops && loan.payments.length >= loan.paymentTotal) {
     transitionLoan(loanId, "COMPLETED");
   }
 
