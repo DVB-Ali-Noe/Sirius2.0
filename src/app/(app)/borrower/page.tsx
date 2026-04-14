@@ -197,7 +197,9 @@ export default function BorrowerPage() {
 
   if (!allowed) return null
 
-  const myLoans = loans?.filter((l) => l.borrower === address) ?? []
+  const addressLoans = loans?.filter((l) => l.borrower === address) ?? []
+  // Show all loans if none match connected address (demo mode with .env wallets)
+  const myLoans = addressLoans.length > 0 ? addressLoans : (loans ?? [])
   const activeLoans = myLoans.filter((l) => l.status === "ACTIVE" || l.status === "REPAYING")
 
   const handleDownload = async (loan: LoanRecord) => {

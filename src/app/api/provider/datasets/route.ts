@@ -55,6 +55,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ datasets, count: datasets.length });
   } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.includes("Account not found") || msg.includes("actNotFound")) {
+      return NextResponse.json({ datasets: [], count: 0 });
+    }
     return apiError(error);
   }
 }

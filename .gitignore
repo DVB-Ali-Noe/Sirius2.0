@@ -41,6 +41,6 @@ coverage/
 # Next.js
 next-env.d.ts
 
-# pnpm
-pnpm-lock.yaml
+# npm
+package-lock.json
 

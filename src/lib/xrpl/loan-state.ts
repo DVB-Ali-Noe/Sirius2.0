@@ -32,7 +32,9 @@ export interface PaymentRecord {
   timestamp: number;
 }
 
-const loans = new Map<string, LoanRecord>();
+const globalStore = globalThis as unknown as { __sirius_loans?: Map<string, LoanRecord> };
+const loans: Map<string, LoanRecord> = globalStore.__sirius_loans ?? new Map<string, LoanRecord>();
+globalStore.__sirius_loans = loans;
 
 const VALID_TRANSITIONS: Record<LoanStatus, LoanStatus[]> = {
   PENDING: ["ACTIVE"],
@@ -87,7 +89,7 @@ export function addPayment(loanId: string, payment: PaymentRecord): LoanRecord {
   const principal = parseFloat(loan.principalAmount);
   const totalDueDrops = Math.round(principal * (1 + loan.interestRate / 10000) * 1_000_000);
 
-  if (totalPaidDrops >= totalDueDrops || loan.payments.length >= loan.paymentTotal) {
+  if (totalPaidDrops >= totalDueDrops && loan.payments.length >= loan.paymentTotal) {
     transitionLoan(loanId, "COMPLETED");
   }
 

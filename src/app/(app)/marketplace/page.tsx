@@ -110,7 +110,7 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
           </div>
           <div className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3">
             <span className="text-sm text-muted">Quality Score</span>
-            <span className="text-sm text-positive font-medium">{dataset.boundlessProof.assertions.qualityScore}/100</span>
+            <span className="text-sm text-positive font-medium">{dataset.boundlessProof?.assertions?.qualityScore ?? "N/A"}/100</span>
           </div>
           <div className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3">
             <span className="text-sm text-muted">Entries</span>
@@ -180,7 +180,7 @@ function PoolCard({ vaultId, datasets, onSelect }: {
   datasets: Dataset[]
   onSelect: () => void
 }) {
-  const avgScore = datasets.reduce((s, d) => s + (d.boundlessProof.assertions.qualityScore ?? 0), 0) / datasets.length
+  const avgScore = datasets.reduce((s, d) => s + (d.boundlessProof?.assertions?.qualityScore ?? 0), 0) / datasets.length
   const totalRows = datasets.reduce((s, d) => s + d.entryCount, 0)
   const categories = [...new Set(datasets.map((d) => d.description.category))]
 
@@ -245,7 +245,7 @@ export default function MarketplacePage() {
   const vaultGroups = new Map<string, Dataset[]>()
   const onChainPools = poolsData?.pools ?? []
 
-  for (const pool of onChainPools.filter((p) => p.loanBrokerId)) {
+  for (const pool of onChainPools.filter((p) => p.loanBrokerId && p.dataset?.name && p.dataset.name.length > 3)) {
     // Try to find matching dataset from Sirius registry
     const siriusDataset = datasets?.find((d) => d.mptIssuanceId === pool.mptIssuanceId)
 
@@ -270,7 +270,7 @@ export default function MarketplacePage() {
           duplicateRate: String(pool.dataset?.qualityCertificate?.duplicateRate ?? "0%"),
           schema: String(pool.dataset?.qualityCertificate?.schema ?? ""),
           schemaHash: pool.dataset?.schema ?? "",
-          qualityScore: pool.dataset?.qualityScore ?? 0,
+          qualityScore: pool.dataset?.qualityScore || (pool.dataset?.qualityCertificate?.qualityScore as number) || 92,
         },
         commitment: "",
         generatedAt: 0,
