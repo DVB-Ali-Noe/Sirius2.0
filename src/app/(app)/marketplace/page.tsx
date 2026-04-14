@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 import { useRouteGuard } from "@/hooks/use-route-guard"
 import { useDatasets } from "@/hooks/use-datasets"
-import { useCreateLoan } from "@/hooks/use-loans"
 import { useWalletStore } from "@/stores/wallet"
 import { DatasetCard } from "@/components/dataset/DatasetCard"
 import { DatasetDetail } from "@/components/dataset/DatasetDetail"
@@ -14,6 +13,7 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner"
 import { EmptyState } from "@/components/common/EmptyState"
 import { Toast } from "@/components/common/Toast"
 import { apiPost, apiGet } from "@/lib/api-client"
+import { signAndSubmitPayment, isOtsuInstalled } from "@/lib/wallet/otsu"
 
 interface OnChainPool {
   vaultId: string
@@ -45,7 +45,7 @@ function useOnChainPools() {
 import { TxLink } from "@/components/common/TxLink"
 import type { Dataset } from "@/hooks/use-datasets"
 
-type FlowStep = "idle" | "creating-loan" | "activating-key" | "done"
+type FlowStep = "idle" | "awaiting-signature" | "verifying-payment" | "activating-key" | "done"
 
 function LoanRequestModal({ dataset, open, onClose, onComplete }: {
   dataset: Dataset | null
@@ -55,34 +55,63 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
 }) {
   const [duration, setDuration] = useState("30")
   const { address } = useWalletStore()
-  const createLoan = useCreateLoan()
   const [step, setStep] = useState<FlowStep>("idle")
   const [txHash, setTxHash] = useState<string | null>(null)
   const [toast, setToast] = useState<{ msg: string; variant: "success" | "error" } | null>(null)
 
   if (!dataset) return null
 
+  const pricePerDay = parseFloat(
+    (dataset as unknown as { pricePerDay?: string; description?: { pricePerDay?: string } })
+      .description?.pricePerDay
+    ?? (dataset as unknown as { pricePerDay?: string }).pricePerDay
+    ?? "0.5"
+  )
+  const totalXrp = pricePerDay * parseFloat(duration || "0")
+  const totalDrops = Math.round(totalXrp * 1_000_000).toString()
+
   const handleRequest = async () => {
-    if (!dataset.mptIssuanceId || !dataset.vaultId) return
+    if (!dataset.mptIssuanceId) return
+    if (!address) {
+      setToast({ msg: "Connect Otsu wallet first", variant: "error" })
+      return
+    }
+    if (!isOtsuInstalled()) {
+      setToast({ msg: "Otsu Wallet extension not detected", variant: "error" })
+      return
+    }
+    if (!dataset.providerAddress) {
+      setToast({ msg: "Dataset has no provider address", variant: "error" })
+      return
+    }
+    if (totalXrp <= 0) {
+      setToast({ msg: "Invalid duration or price", variant: "error" })
+      return
+    }
 
     try {
-      setStep("creating-loan")
-      const result = await createLoan.mutateAsync({
-        vaultId: dataset.vaultId,
-        mptIssuanceId: dataset.mptIssuanceId,
-        loanBrokerId: dataset.loanBrokerId,
-        borrowerAddress: address ?? "",
-        principalAmount: "1",
-        interestRate: 500,
-      }) as { loanId: string }
-
-      setTxHash(result.loanId)
-
-      setStep("activating-key")
-      await apiPost("/api/sirius/activate", {
-        action: "activate",
-        loanId: result.loanId,
+      setStep("awaiting-signature")
+      const { hash } = await signAndSubmitPayment({
+        from: address,
+        to: dataset.providerAddress,
+        amountDrops: totalDrops,
+        memo: `sirius-loan:${dataset.datasetId}`,
       })
+      setTxHash(hash)
+
+      setStep("verifying-payment")
+      const verify = await apiPost<{ success: boolean; loanId?: string; reason?: string }>(
+        "/api/xrpl/verify-payment",
+        {
+          txHash: hash,
+          datasetId: dataset.datasetId,
+          borrowerAddress: address,
+          durationDays: parseInt(duration, 10),
+        }
+      )
+      if (!verify.success) {
+        throw new Error(verify.reason ?? "Payment verification failed")
+      }
 
       setStep("done")
       setTimeout(() => {
@@ -98,8 +127,9 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
   }
 
   const stepLabels: Record<FlowStep, string> = {
-    "idle": "Request Access",
-    "creating-loan": "Creating loan on XRPL...",
+    "idle": "Confirm & Pay with Otsu",
+    "awaiting-signature": "Check Otsu wallet for signature...",
+    "verifying-payment": "Verifying payment on XRPL...",
     "activating-key": "Activating decryption key...",
     "done": "Access granted!",
   }
@@ -135,9 +165,10 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
           </div>
 
           <div className="flex items-center justify-between rounded-lg border border-accent/20 bg-accent/5 px-4 py-3">
-            <span className="text-sm text-muted">Estimated Cost</span>
+            <span className="text-sm text-muted">Total Cost</span>
             <span className="text-sm text-accent font-medium">
-              {(parseFloat(duration || "0") / 365 * 500 / 100).toFixed(2)} XRP
+              {totalXrp.toFixed(2)} XRP
+              <span className="ml-2 text-xs text-muted">({pricePerDay} XRP/day)</span>
             </span>
           </div>
 

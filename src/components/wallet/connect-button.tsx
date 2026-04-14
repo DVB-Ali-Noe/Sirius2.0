@@ -3,13 +3,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useWalletStore } from "@/stores/wallet";
 import { truncateAddress } from "@/lib/utils";
-import { getWalletManager } from "@/lib/wallet/manager";
-import { triggerWalletConnect } from "@/components/wallet/wallet-connector";
+import { connectOtsu, disconnectOtsu, isOtsuInstalled } from "@/lib/wallet/otsu";
 
 export function ConnectButton() {
-  const { connected, address, connecting } = useWalletStore();
+  const { connected, address, connecting, setConnected, setDisconnected, setConnecting } = useWalletStore();
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,6 +26,23 @@ export function ConnectButton() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open]);
 
+  const handleConnect = async () => {
+    setError(null);
+    if (!isOtsuInstalled()) {
+      setError("Otsu Wallet extension not detected. Install it and refresh.");
+      return;
+    }
+    try {
+      setConnecting(true);
+      const { address: addr, network } = await connectOtsu();
+      setConnected(addr, network);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to connect";
+      setError(msg);
+      setConnecting(false);
+    }
+  };
+
   const baseStyle =
     "cursor-pointer rounded-full border border-white/80 bg-white/5 px-7 py-2.5 text-sm text-white backdrop-blur-sm transition-all duration-200";
 
@@ -39,9 +56,12 @@ export function ConnectButton() {
 
   if (!connected || !address) {
     return (
-      <button onClick={triggerWalletConnect} className={`${baseStyle} uppercase tracking-widest`}>
-        Connect
-      </button>
+      <div className="flex flex-col items-end gap-1">
+        <button onClick={handleConnect} className={`${baseStyle} uppercase tracking-widest`}>
+          Connect Otsu
+        </button>
+        {error && <span className="text-xs text-negative max-w-xs text-right">{error}</span>}
+      </div>
     );
   }
 
@@ -73,8 +93,8 @@ export function ConnectButton() {
           <div className="border-t border-border" />
           <button
             onClick={() => {
-              useWalletStore.getState().setDisconnected();
-              getWalletManager().disconnect().catch(() => {});
+              setDisconnected();
+              disconnectOtsu();
               setOpen(false);
             }}
             className="flex w-full cursor-pointer items-center gap-2 px-4 py-3 text-left text-sm text-negative transition-colors hover:bg-white/5"
