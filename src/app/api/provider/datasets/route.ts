@@ -53,6 +53,8 @@ export async function GET(request: NextRequest) {
       } catch {}
     }
 
+    datasets.sort((a, b) => b.createdAt - a.createdAt);
+
     return NextResponse.json({ datasets, count: datasets.length });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);

@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
       description?: DatasetDescription;
       rows?: unknown[];
       schema?: string;
+      pricePerDay?: string;
     };
 
     if (!body.providerAddress) return validationError("providerAddress");
@@ -33,12 +34,21 @@ export async function POST(request: NextRequest) {
     if (body.rows.length > 10000) return validationError("rows (max 10000)");
     if (!body.schema) return validationError("schema");
 
+    const pricePerDay = body.pricePerDay ?? body.description.pricePerDay ?? "0.5";
+    const priceNum = parseFloat(pricePerDay);
+    if (!Number.isFinite(priceNum) || priceNum <= 0) return validationError("pricePerDay");
+
+    const description: DatasetDescription = {
+      ...body.description,
+      pricePerDay,
+    };
+
     const steps: Array<{ step: string; detail: string }> = [];
 
     // Step 1 — Sirius
     const ingestion = await ingestDataset({
       providerAddress: body.providerAddress,
-      description: body.description,
+      description,
       rows: body.rows,
       schema: body.schema,
     });
@@ -62,7 +72,7 @@ export async function POST(request: NextRequest) {
     const loanBroker = getLoanBroker();
 
     const metadata: DatasetMetadata = {
-      dataset: body.description,
+      dataset: description,
       ipfsHash: ingestion.manifestCid,
       zkProofRef: ingestion.boundlessProof.verifierUri,
       schemaHash: ingestion.boundlessProof.assertions.schemaHash,
@@ -89,7 +99,10 @@ export async function POST(request: NextRequest) {
     const domainId = await createPermissionedDomain(loanBroker, [
       { issuer: loanBroker.classicAddress, credentialType: "DataProviderCertified" },
     ]);
-    const vaultId = await createLendingPool(loanBroker, mptIssuanceId, domainId);
+    const vaultId = await createLendingPool(loanBroker, mptIssuanceId, domainId, {
+      name: description.name,
+      pricePerDay,
+    });
     attachVault(ingestion.datasetId, vaultId);
     steps.push({ step: "vault_created", detail: vaultId });
 
@@ -111,6 +124,8 @@ export async function POST(request: NextRequest) {
       merkleRoot: ingestion.merkleRoot,
       entryCount: ingestion.entryCount,
       qualityScore,
+      pricePerDay,
+      vaultName: description.name,
       steps,
     });
   } catch (error) {

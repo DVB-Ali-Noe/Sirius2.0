@@ -1,10 +1,18 @@
 "use client"
 
+import { useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { useWalletStore } from "@/stores/wallet"
 import { useMyDatasets } from "@/hooks/use-my-datasets"
 import { LoadingSpinner } from "@/components/common/LoadingSpinner"
 import { EmptyState } from "@/components/common/EmptyState"
+import { Toast } from "@/components/common/Toast"
 import { truncateAddress } from "@/lib/utils"
+import { apiPost } from "@/lib/api-client"
+import { signAndSubmitCredentialAccept, isOtsuInstalled } from "@/lib/wallet/otsu"
+import type { OnChainDataset } from "@/hooks/use-my-datasets"
+
+const XRPL_EXPLORER_URL = "https://custom.xrpl.org/wasm.devnet.rippletest.net"
 
 function StatCard({ label, value, color = "text-foreground" }: { label: string; value: string | number; color?: string }) {
   return (
@@ -15,9 +23,143 @@ function StatCard({ label, value, color = "text-foreground" }: { label: string; 
   )
 }
 
+function OnboardingPanel({ address }: { address: string }) {
+  const [step, setStep] = useState<"idle" | "issuing" | "signing" | "done" | "funding">("idle")
+  const [toast, setToast] = useState<{ msg: string; variant: "success" | "error" } | null>(null)
+  const qc = useQueryClient()
+
+  const loanBrokerAddress = process.env.NEXT_PUBLIC_LOANBROKER_ADDRESS
+
+  const fundMe = async () => {
+    try {
+      setStep("funding")
+      const res = await apiPost<{ funded: boolean; balance?: string }>("/api/xrpl/fund", { address })
+      setToast({ msg: `Funded ${address.slice(0, 8)}… with ${res.balance ?? "?"} XRP`, variant: "success" })
+      setStep("idle")
+    } catch (err) {
+      setToast({ msg: err instanceof Error ? err.message : "Fund failed", variant: "error" })
+      setStep("idle")
+    }
+  }
+
+  const onboard = async (credentialType: "BorrowerKYB" | "DataProviderCertified") => {
+    if (!isOtsuInstalled()) {
+      setToast({ msg: "Otsu Wallet not detected", variant: "error" })
+      return
+    }
+    if (!loanBrokerAddress) {
+      setToast({ msg: "LoanBroker address missing in config", variant: "error" })
+      return
+    }
+    try {
+      setStep("issuing")
+      await apiPost("/api/xrpl/credentials", {
+        action: "issue",
+        credentialType,
+        address,
+      })
+
+      setStep("signing")
+      await signAndSubmitCredentialAccept({
+        subject: address,
+        issuer: loanBrokerAddress,
+        credentialType,
+      })
+
+      setStep("done")
+      setToast({ msg: `${credentialType} activated`, variant: "success" })
+      qc.invalidateQueries({ queryKey: ["wallet-credentials"] })
+      setTimeout(() => setStep("idle"), 2000)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed"
+      setToast({ msg, variant: "error" })
+      setStep("idle")
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-accent/30 bg-accent/5 p-6">
+      <h2 className="text-base font-medium tracking-wider text-foreground">Get a Role</h2>
+      <p className="mt-1 text-sm text-muted">
+        Your wallet has no on-chain credential yet. Pick a role to unlock the protocol.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <button
+          onClick={fundMe}
+          disabled={step !== "idle"}
+          className="cursor-pointer rounded-full border border-accent/80 bg-accent/10 px-5 py-2 text-sm text-accent transition hover:bg-accent/20 disabled:cursor-wait disabled:opacity-50"
+        >
+          Fund me (wasm devnet)
+        </button>
+        <button
+          onClick={() => onboard("BorrowerKYB")}
+          disabled={step !== "idle"}
+          className="cursor-pointer rounded-full border border-white/80 bg-white/5 px-5 py-2 text-sm text-white transition hover:bg-white/10 disabled:cursor-wait disabled:opacity-50"
+        >
+          Become Borrower
+        </button>
+        <button
+          onClick={() => onboard("DataProviderCertified")}
+          disabled={step !== "idle"}
+          className="cursor-pointer rounded-full border border-white/30 bg-transparent px-5 py-2 text-sm text-white transition hover:bg-white/5 disabled:cursor-wait disabled:opacity-50"
+        >
+          Become Provider
+        </button>
+      </div>
+      {step !== "idle" && (
+        <p className="mt-3 text-xs text-muted">
+          {step === "funding" && "Requesting XRP from wasm-devnet faucet…"}
+          {step === "issuing" && "LoanBroker is issuing the credential on-chain…"}
+          {step === "signing" && "Confirm the CredentialAccept in your Otsu wallet…"}
+          {step === "done" && "Role activated. Refreshing…"}
+        </p>
+      )}
+      {toast && <Toast message={toast.msg} variant={toast.variant} onClose={() => setToast(null)} />}
+    </div>
+  )
+}
+
+function DatasetInfoModal({ dataset, onClose }: { dataset: OnChainDataset; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="relative w-full max-w-lg rounded-2xl border border-border bg-surface p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute right-4 top-4 text-muted hover:text-foreground cursor-pointer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <h2 className="text-lg font-medium text-foreground mb-4 pr-8 truncate">{dataset.name}</h2>
+        <div className="grid gap-2 text-xs text-foreground mb-4">
+          <div className="flex justify-between"><span className="text-muted">MPT ID</span><a href={`${XRPL_EXPLORER_URL}/mpt/${dataset.mptIssuanceId}`} target="_blank" rel="noopener noreferrer" className="font-mono truncate ml-4 text-accent hover:underline">{dataset.mptIssuanceId.slice(0, 16)}...{dataset.mptIssuanceId.slice(-8)}</a></div>
+          <div className="flex justify-between"><span className="text-muted">Category</span><span>{dataset.category}</span></div>
+          <div className="flex justify-between"><span className="text-muted">Entries</span><span>{dataset.entryCount} rows</span></div>
+          <div className="flex justify-between"><span className="text-muted">Quality Score</span><span className="text-positive font-bold">{dataset.qualityScore}/100</span></div>
+          <div className="flex justify-between"><span className="text-muted">Duplicates</span><span>{dataset.duplicateRate}</span></div>
+          {dataset.schema && <div className="flex justify-between"><span className="text-muted">Schema</span><span>{dataset.schema}</span></div>}
+          {dataset.ipfs && <div className="flex justify-between"><span className="text-muted">IPFS</span><a href={`https://gateway.pinata.cloud/ipfs/${dataset.ipfs}`} target="_blank" rel="noopener noreferrer" className="font-mono truncate ml-4 text-accent hover:underline">{dataset.ipfs.slice(0, 20)}...</a></div>}
+        </div>
+        <a
+          href={`${XRPL_EXPLORER_URL}/mpt/${dataset.mptIssuanceId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-4 py-2 text-xs uppercase tracking-widest text-accent transition-colors hover:bg-accent/20 w-fit"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+          View on Explorer
+        </a>
+      </div>
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   const { connected, address, role } = useWalletStore()
   const { data: myDatasetsData, isLoading: datasetsLoading } = useMyDatasets()
+  const [selectedDataset, setSelectedDataset] = useState<OnChainDataset | null>(null)
 
   if (!connected) {
     return (
@@ -51,6 +193,8 @@ export default function DashboardPage() {
             <StatCard label="Role" value={role ?? "none"} />
           </div>
 
+          {role === null && address && <OnboardingPanel address={address} />}
+
           <div>
             <h2 className="mb-4 text-base font-medium tracking-wider">My Datasets (on-chain)</h2>
             {myDatasets.length === 0 ? (
@@ -58,7 +202,11 @@ export default function DashboardPage() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {myDatasets.map((d) => (
-                  <div key={d.mptIssuanceId} className="flex flex-col gap-2 rounded-2xl border border-border bg-surface/50 p-5">
+                  <div
+                    key={d.mptIssuanceId}
+                    onClick={() => setSelectedDataset(d)}
+                    className="flex flex-col gap-2 rounded-2xl border border-border bg-surface/50 p-5 cursor-pointer transition-colors hover:border-white/20 hover:bg-surface/80"
+                  >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-foreground truncate">{d.name}</span>
                       <span className="text-xs font-bold" style={{ color: d.qualityScore >= 80 ? "#34D399" : d.qualityScore >= 50 ? "#FF4D00" : "#F87171" }}>
@@ -76,6 +224,10 @@ export default function DashboardPage() {
             )}
           </div>
         </>
+      )}
+
+      {selectedDataset && (
+        <DatasetInfoModal dataset={selectedDataset} onClose={() => setSelectedDataset(null)} />
       )}
     </div>
   )

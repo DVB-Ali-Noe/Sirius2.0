@@ -4,12 +4,13 @@ import {
   createPermissionedDomain,
   depositToVault,
   withdrawFromVault,
+  deleteVault,
   getLoanBroker,
   getProvider,
 } from "@/lib/xrpl";
 import { requireAuth, apiError, validationError } from "@/lib/api-utils";
 
-const VALID_ACTIONS = ["create", "deposit", "withdraw"] as const;
+const VALID_ACTIONS = ["create", "deposit", "withdraw", "delete"] as const;
 
 export async function POST(request: NextRequest) {
   const authErr = requireAuth(request);
@@ -33,6 +34,12 @@ export async function POST(request: NextRequest) {
 
     const loanBroker = getLoanBroker();
     const provider = getProvider();
+
+    if (body.action === "delete") {
+      if (!body.vaultId) return validationError("vaultId");
+      await deleteVault(loanBroker, body.vaultId);
+      return NextResponse.json({ status: "deleted", vaultId: body.vaultId });
+    }
 
     if (body.action === "create") {
       const domainId = await createPermissionedDomain(loanBroker, [

@@ -4,6 +4,8 @@ import {
   VaultCreateFlags,
   VaultDeposit,
   VaultWithdraw,
+  VaultDelete,
+  VaultClawback,
 } from "xrpl";
 import type { MPTAmount } from "xrpl/dist/npm/models/common";
 import { getClient } from "./client";
@@ -65,11 +67,27 @@ export async function depositToVault(
   }
 }
 
+export interface LendingPoolMetadata {
+  name: string;
+  pricePerDay?: string;
+}
+
+function encodeVaultMetadata(input: string | LendingPoolMetadata): string {
+  if (typeof input === "string") {
+    return Buffer.from(input).toString("hex");
+  }
+  const payload = {
+    name: (input.name || "").slice(0, 80),
+    pricePerDay: input.pricePerDay ?? "0.5",
+  };
+  return Buffer.from(JSON.stringify(payload)).toString("hex");
+}
+
 export async function createLendingPool(
   loanBroker: Wallet,
   mptIssuanceId: string,
   domainId?: string,
-  metadata?: string
+  metadata?: string | LendingPoolMetadata
 ): Promise<string> {
   const client = await getClient();
 
@@ -79,7 +97,7 @@ export async function createLendingPool(
     Asset: { mpt_issuance_id: mptIssuanceId },
     Flags: VaultCreateFlags.tfVaultPrivate,
     ...(domainId && { DomainID: domainId }),
-    ...(metadata && { Data: Buffer.from(metadata).toString("hex") }),
+    ...(metadata && { Data: encodeVaultMetadata(metadata) }),
   };
 
   const result = await client.submitAndWait(tx, { wallet: loanBroker });
@@ -122,4 +140,49 @@ export async function withdrawFromVault(
   };
 
   await client.submitAndWait(tx, { wallet: withdrawer });
+}
+
+export async function deleteVault(
+  owner: Wallet,
+  vaultId: string
+): Promise<void> {
+  const client = await getClient();
+
+  const tx: VaultDelete = {
+    TransactionType: "VaultDelete",
+    Account: owner.classicAddress,
+    VaultID: vaultId,
+  };
+
+  const result = await client.submitAndWait(tx, { wallet: owner });
+  const meta = result.result.meta as { TransactionResult?: string } | undefined;
+  if (meta?.TransactionResult !== "tesSUCCESS") {
+    throw new Error(`VaultDelete failed: ${meta?.TransactionResult ?? "unknown"}`);
+  }
+}
+
+export async function clawbackVault(
+  owner: Wallet,
+  vaultId: string,
+  holderAddress: string,
+  mptIssuanceId?: string,
+  amount?: string
+): Promise<void> {
+  const client = await getClient();
+
+  const tx: VaultClawback = {
+    TransactionType: "VaultClawback",
+    Account: owner.classicAddress,
+    VaultID: vaultId,
+    Holder: holderAddress,
+    ...(mptIssuanceId && amount && {
+      Amount: { mpt_issuance_id: mptIssuanceId, value: amount },
+    }),
+  };
+
+  const result = await client.submitAndWait(tx, { wallet: owner });
+  const meta = result.result.meta as { TransactionResult?: string } | undefined;
+  if (meta?.TransactionResult !== "tesSUCCESS") {
+    throw new Error(`VaultClawback failed: ${meta?.TransactionResult ?? "unknown"}`);
+  }
 }

@@ -11,9 +11,10 @@ export function useRoleDetection() {
   useEffect(() => {
     if (!connected || !address) return;
 
-    // LoanBroker is detected by env var (it's the platform operator)
+    // LoanBroker / Admin detected by env var (platform operators)
     const loanBrokerAddress = process.env.NEXT_PUBLIC_LOANBROKER_ADDRESS;
-    if (loanBrokerAddress && address === loanBrokerAddress) {
+    const adminAddress = process.env.NEXT_PUBLIC_ADMIN_ADDRESS;
+    if ((loanBrokerAddress && address === loanBrokerAddress) || (adminAddress && address === adminAddress)) {
       if (role !== "loanbroker") setRole("loanbroker");
       return;
     }

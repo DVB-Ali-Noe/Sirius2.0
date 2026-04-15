@@ -21,7 +21,7 @@ export function getBorrower(): Wallet {
 }
 
 export function getLoanBroker(): Wallet {
-  return Wallet.fromSeed(requireEnv("XRPL_LOANBROKER_SEED"));
+  return Wallet.fromSeed(requireEnv("XRPL_ADMIN_SEED"));
 }
 
 export function getDemoWallets() {

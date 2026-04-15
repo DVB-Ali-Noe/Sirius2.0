@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createLoanBroker, getLoanBroker } from "@/lib/xrpl";
 import { requireAuth, apiError, validationError } from "@/lib/api-utils";
 
 export async function POST(request: NextRequest) {
@@ -10,23 +11,24 @@ export async function POST(request: NextRequest) {
       datasetId?: string;
       mptIssuanceId?: string;
       vaultId?: string;
-      loanBrokerId?: string;
-      mptAuthorizeTxHash?: string;
-      vaultDepositTxHash?: string;
     };
 
     if (!body.datasetId) return validationError("datasetId");
+    if (!body.mptIssuanceId) return validationError("mptIssuanceId");
+    if (!body.vaultId) return validationError("vaultId");
+
+    const loanBroker = getLoanBroker();
+    const loanBrokerId = await createLoanBroker(loanBroker, body.vaultId);
 
     return NextResponse.json({
       success: true,
       datasetId: body.datasetId,
       mptIssuanceId: body.mptIssuanceId,
       vaultId: body.vaultId,
-      loanBrokerId: body.loanBrokerId,
-      mptAuthorizeTxHash: body.mptAuthorizeTxHash,
-      vaultDepositTxHash: body.vaultDepositTxHash,
+      loanBrokerId,
     });
   } catch (error) {
+    console.error("[provider/upload/finalize] Error:", error);
     return apiError(error);
   }
 }

@@ -13,14 +13,18 @@ export interface LoanRecord {
   loanBroker: string;
   vaultId: string;
   mptIssuanceId: string;
+  datasetId?: string;
   status: LoanStatus;
   principalAmount: string;
   interestRate: number;
   paymentTotal: number;
   paymentInterval: number;
   gracePeriod: number;
+  pricePerDay?: string;
+  durationDays?: number;
   createdAt: number;
   activatedAt?: number;
+  expiresAt?: number;
   completedAt?: number;
   distributedAt?: number;
   payments: PaymentRecord[];
@@ -32,9 +36,13 @@ export interface PaymentRecord {
   timestamp: number;
 }
 
+import { loadStore, saveStore } from "@/lib/persistence";
+
 const globalStore = globalThis as unknown as { __sirius_loans?: Map<string, LoanRecord> };
-const loans: Map<string, LoanRecord> = globalStore.__sirius_loans ?? new Map<string, LoanRecord>();
+const loans: Map<string, LoanRecord> = globalStore.__sirius_loans ?? loadStore<LoanRecord>("loans");
 globalStore.__sirius_loans = loans;
+
+function persist() { saveStore("loans", loans); }
 
 const VALID_TRANSITIONS: Record<LoanStatus, LoanStatus[]> = {
   PENDING: ["ACTIVE"],
@@ -53,6 +61,7 @@ export function createLoanRecord(record: Omit<LoanRecord, "status" | "payments" 
     createdAt: Date.now(),
   };
   loans.set(record.loanId, loan);
+  persist();
   return loan;
 }
 
@@ -70,6 +79,7 @@ export function transitionLoan(loanId: string, newStatus: LoanStatus): LoanRecor
   if (newStatus === "ACTIVE") loan.activatedAt = Date.now();
   if (newStatus === "COMPLETED" || newStatus === "DEFAULTED") loan.completedAt = Date.now();
 
+  persist();
   return loan;
 }
 
@@ -93,6 +103,7 @@ export function addPayment(loanId: string, payment: PaymentRecord): LoanRecord {
     transitionLoan(loanId, "COMPLETED");
   }
 
+  persist();
   return loan;
 }
 
@@ -123,4 +134,30 @@ export function getLoan(loanId: string): LoanRecord | undefined {
 
 export function getAllLoans(): LoanRecord[] {
   return Array.from(loans.values());
+}
+
+export function removeLoan(loanId: string): boolean {
+  const r = loans.delete(loanId);
+  persist();
+  return r;
+}
+
+export function clearAllLoans(): number {
+  const count = loans.size;
+  loans.clear();
+  persist();
+  return count;
+}
+
+export function extendLoanExpiry(loanId: string, additionalMs: number): LoanRecord {
+  const loan = loans.get(loanId);
+  if (!loan) throw new Error(`Loan ${loanId} not found`);
+  if (loan.status === "DEFAULTED") {
+    throw new Error(`Cannot extend loan in status ${loan.status}`);
+  }
+  if (loan.status === "COMPLETED") loan.status = "ACTIVE";
+  const base = loan.expiresAt && loan.expiresAt > Date.now() ? loan.expiresAt : Date.now();
+  loan.expiresAt = base + additionalMs;
+  persist();
+  return loan;
 }

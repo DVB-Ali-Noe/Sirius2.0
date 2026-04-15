@@ -32,6 +32,7 @@ function demoDatasetDescription(): DatasetDescription {
     language: "en",
     format: "jsonl",
     sampleFields: ["instruction", "response", "category", "difficulty"],
+    pricePerDay: "0.5",
   };
 }
 
@@ -147,7 +148,10 @@ export async function POST(request: NextRequest) {
       { issuer: loanBroker.classicAddress, credentialType: "DataProviderCertified" },
     ]);
 
-    const vaultId = await createLendingPool(loanBroker, mptIssuanceId, domainId, "DataLend Tier 2 - Instruction Tuning");
+    const vaultId = await createLendingPool(loanBroker, mptIssuanceId, domainId, {
+      name: demoDatasetDescription().name,
+      pricePerDay: "0.5",
+    });
     steps.push({ step: "lending_pool_created", result: { vaultId, domainId } });
 
     await depositToVault(provider, vaultId, mptIssuanceId, "1");
@@ -187,6 +191,7 @@ export async function POST(request: NextRequest) {
       steps.push({ step: "loan_created", result: { loanId, onChain: false, reason: msg } });
     }
 
+    const DEMO_DURATION_DAYS = 30;
     const loanRecord = createLoanRecord({
       loanId,
       borrower: borrower.classicAddress,
@@ -194,17 +199,21 @@ export async function POST(request: NextRequest) {
       loanBroker: loanBroker.classicAddress,
       vaultId,
       mptIssuanceId,
+      datasetId: ingestion.datasetId,
       principalAmount: "1",
       interestRate: 500,
       paymentTotal: 1,
       paymentInterval: 2592000,
       gracePeriod: 86400,
+      pricePerDay: "0.5",
+      durationDays: DEMO_DURATION_DAYS,
     });
 
     transitionLoan(loanId, "ACTIVE");
+    loanRecord.expiresAt = Date.now() + DEMO_DURATION_DAYS * 86_400_000;
     steps.push({ step: "loan_active", result: loanRecord });
 
-    const activation = activateLoanAccess(loanId);
+    const activation = activateLoanAccess(loanId, undefined, DEMO_DURATION_DAYS * 86_400_000);
     if (!activation.ok) {
       throw new Error(`Sirius key activation failed: ${activation.reason}`);
     }

@@ -104,6 +104,22 @@ export async function fetchFromIpfs(cid: string): Promise<Buffer> {
   return Buffer.from(arrayBuffer);
 }
 
+export async function unpinFromIpfs(cid: string): Promise<boolean> {
+  if (cid.startsWith("mock-")) {
+    return mockStore.delete(cid);
+  }
+
+  const jwt = getJwt();
+  if (!jwt) return false;
+
+  const res = await fetch(`https://api.pinata.cloud/pinning/unpin/${cid}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${jwt}` },
+  });
+
+  return res.ok;
+}
+
 const mockStore = new Map<string, Buffer>();
 
 function simpleHash(s: string): string {

@@ -1,5 +1,8 @@
 # Dependencies
 node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
 
 # Build
 .nuxt/
@@ -7,6 +10,12 @@ node_modules/
 .next/
 out/
 dist/
+build/
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+next-env.d.ts
 
 # Env
 .env
@@ -19,18 +28,32 @@ dist/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
 
 # OS
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
 # Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # Keys / secrets
 *.pem
 *.key
 *.seed
+*.p12
+*.pfx
+secrets/
+.secrets/
 
 # IPFS local
 .ipfs/
@@ -38,7 +61,17 @@ Thumbs.db
 # Coverage / tests
 coverage/
 .nyc_output/
+*.lcov
 
+# Lock files (keep only pnpm-lock.yaml)
+package-lock.json
+yarn.lock
+
+# Cache
+.cache/
+.turbo/
+.vercel/
+.parcel-cache/
 # Next.js
 next-env.d.ts
 
@@ -52,3 +85,9 @@ next-env.d.ts
 MVP-STATUS.md
 audit.md
 
+# Misc
+*.tmp
+*.temp
+.eslintcache
+.stylelintcache
+.sirius-data/

@@ -85,6 +85,7 @@ export async function ingestDataset(input: IngestInput): Promise<IngestResult> {
     masterKeyEncoded: encodeKey(masterKey),
     version: input.version ?? `${new Date().toISOString().slice(0, 10)}-v1`,
     createdAt: Date.now(),
+    pricePerDay: input.description.pricePerDay,
   };
 
   registerDataset(record);

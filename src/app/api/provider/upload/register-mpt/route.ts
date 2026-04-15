@@ -4,6 +4,7 @@ import {
   holderOptInMPT,
   createPermissionedDomain,
   createLendingPool,
+  createLoanBroker,
   getLoanBroker,
 } from "@/lib/xrpl";
 import { requireAuth, apiError, validationError } from "@/lib/api-utils";
@@ -40,10 +41,18 @@ export async function POST(request: NextRequest) {
     const vaultId = await createLendingPool(loanBroker, body.mptIssuanceId, domainId);
     attachVault(body.datasetId, vaultId);
 
-    // Create loan broker
+    // Create loan broker object on-chain
+    let loanBrokerId: string | null = null;
+    try {
+      loanBrokerId = await createLoanBroker(loanBroker, vaultId);
+    } catch (e) {
+      console.warn("[register-mpt] LoanBrokerSet failed (non-blocking):", (e as Error).message?.slice(0, 80));
+    }
+
     return NextResponse.json({
       domainId,
       vaultId,
+      loanBrokerId,
       loanBrokerAddress: loanBroker.classicAddress,
       transactions: {
         mptAuthorize: {

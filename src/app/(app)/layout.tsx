@@ -7,7 +7,7 @@ import { Sidebar, SIDEBAR_COLLAPSED, SIDEBAR_EXPANDED } from "@/components/layou
 import { TopBar } from "@/components/layout/Header"
 import { Footer, FOOTER_H } from "@/components/layout/Footer"
 import { useWalletStore } from "@/stores/wallet"
-import { getWalletManager } from "@/lib/wallet/manager"
+import { disconnectOtsu } from "@/lib/wallet/otsu"
 import { useRoleDetection } from "@/hooks/use-role-detection"
 
 const TOPBAR_H = 80
@@ -182,7 +182,7 @@ export default function AppLayout({
   useEffect(() => {
     if (!dezooming) return
     useWalletStore.getState().setDisconnected()
-    getWalletManager().disconnect().catch(() => {})
+    disconnectOtsu()
     delete (window as any).__blobTargetZ;
     (window as any).__blobDezoom = {
       active: true,

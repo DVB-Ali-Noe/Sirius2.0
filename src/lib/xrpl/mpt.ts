@@ -3,6 +3,7 @@ import {
   MPTokenIssuanceCreate,
   MPTokenIssuanceCreateFlags,
   MPTokenAuthorize,
+  MPTokenIssuanceDestroy,
 } from "xrpl";
 import type { MPTokenIssuanceCreateMetadata } from "xrpl/dist/npm/models/transactions/MPTokenIssuanceCreate";
 import { getClient } from "./client";
@@ -14,6 +15,7 @@ export interface DatasetDescription {
   language: string;
   format: string;
   sampleFields?: string[];
+  pricePerDay?: string;
 }
 
 export interface DatasetMetadata {
@@ -40,13 +42,12 @@ export function buildMPTokenMetadata(metadata: DatasetMetadata): string {
   const structured = {
     t: ticker,
     n: metadata.dataset.name,
-    i: "https://sirius.protocol/mpt-icon.png",
-    ac: "defi",
+    ac: metadata.dataset.category || "defi",
     in: "Sirius Protocol",
     ipfs: metadata.ipfsHash,
     zk: metadata.zkProofRef,
     schema: metadata.schemaHash,
-    qc: metadata.qualityCertificate,
+    qc: { ...metadata.qualityCertificate, ppd: metadata.dataset.pricePerDay ?? "0.5" },
     v: metadata.version,
   }
 
@@ -113,4 +114,23 @@ export async function holderOptInMPT(
   };
 
   await client.submitAndWait(tx, { wallet: holder });
+}
+
+export async function destroyMPT(
+  issuer: Wallet,
+  mptIssuanceId: string
+): Promise<void> {
+  const client = await getClient();
+
+  const tx: MPTokenIssuanceDestroy = {
+    TransactionType: "MPTokenIssuanceDestroy",
+    Account: issuer.classicAddress,
+    MPTokenIssuanceID: mptIssuanceId,
+  };
+
+  const result = await client.submitAndWait(tx, { wallet: issuer });
+  const meta = result.result.meta as { TransactionResult?: string } | undefined;
+  if (meta?.TransactionResult !== "tesSUCCESS") {
+    throw new Error(`MPTokenIssuanceDestroy failed: ${meta?.TransactionResult ?? "unknown"}`);
+  }
 }

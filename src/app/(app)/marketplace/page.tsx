@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 import { useRouteGuard } from "@/hooks/use-route-guard"
 import { useDatasets } from "@/hooks/use-datasets"
-import { useCreateLoan } from "@/hooks/use-loans"
 import { useWalletStore } from "@/stores/wallet"
 import { DatasetCard } from "@/components/dataset/DatasetCard"
 import { DatasetDetail } from "@/components/dataset/DatasetDetail"
@@ -14,9 +13,13 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner"
 import { EmptyState } from "@/components/common/EmptyState"
 import { Toast } from "@/components/common/Toast"
 import { apiPost, apiGet } from "@/lib/api-client"
+import { signAndSubmitPayment, isOtsuInstalled } from "@/lib/wallet/otsu"
+import { useSearchStore } from "@/stores/search"
 
 interface OnChainPool {
   vaultId: string
+  vaultName: string | null
+  pricePerDay: string | null
   mptIssuanceId: string
   loanBrokerId: string | null
   dataset: {
@@ -27,8 +30,10 @@ interface OnChainPool {
     qualityScore: number
     zkProof: string
     schema: string
+    pricePerDay: string | null
   } | null
   issuer: string
+  ledgerSeq: number
 }
 
 function useOnChainPools() {
@@ -41,7 +46,7 @@ function useOnChainPools() {
 import { TxLink } from "@/components/common/TxLink"
 import type { Dataset } from "@/hooks/use-datasets"
 
-type FlowStep = "idle" | "creating-loan" | "activating-key" | "done"
+type FlowStep = "idle" | "awaiting-signature" | "verifying-payment" | "activating-key" | "done"
 
 function LoanRequestModal({ dataset, open, onClose, onComplete }: {
   dataset: Dataset | null
@@ -49,36 +54,65 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
   onClose: () => void
   onComplete: () => void
 }) {
-  const [duration, setDuration] = useState("30")
+  const [duration, setDuration] = useState("1")
   const { address } = useWalletStore()
-  const createLoan = useCreateLoan()
   const [step, setStep] = useState<FlowStep>("idle")
   const [txHash, setTxHash] = useState<string | null>(null)
   const [toast, setToast] = useState<{ msg: string; variant: "success" | "error" } | null>(null)
 
   if (!dataset) return null
 
+  const pricePerDay = parseFloat(
+    (dataset as unknown as { pricePerDay?: string; description?: { pricePerDay?: string } })
+      .description?.pricePerDay
+    ?? (dataset as unknown as { pricePerDay?: string }).pricePerDay
+    ?? "0.5"
+  )
+  const totalXrp = pricePerDay * parseFloat(duration || "0")
+  const totalDrops = Math.round(totalXrp * 1_000_000).toString()
+
   const handleRequest = async () => {
-    if (!dataset.mptIssuanceId || !dataset.vaultId) return
+    if (!dataset.mptIssuanceId) return
+    if (!address) {
+      setToast({ msg: "Connect Otsu wallet first", variant: "error" })
+      return
+    }
+    if (!isOtsuInstalled()) {
+      setToast({ msg: "Otsu Wallet extension not detected", variant: "error" })
+      return
+    }
+    if (!dataset.providerAddress) {
+      setToast({ msg: "Dataset has no provider address", variant: "error" })
+      return
+    }
+    if (totalXrp <= 0) {
+      setToast({ msg: "Invalid duration or price", variant: "error" })
+      return
+    }
 
     try {
-      setStep("creating-loan")
-      const result = await createLoan.mutateAsync({
-        vaultId: dataset.vaultId,
-        mptIssuanceId: dataset.mptIssuanceId,
-        loanBrokerId: dataset.loanBrokerId,
-        borrowerAddress: address ?? "",
-        principalAmount: "1",
-        interestRate: 500,
-      }) as { loanId: string }
-
-      setTxHash(result.loanId)
-
-      setStep("activating-key")
-      await apiPost("/api/sirius/activate", {
-        action: "activate",
-        loanId: result.loanId,
+      setStep("awaiting-signature")
+      const { hash } = await signAndSubmitPayment({
+        from: address,
+        to: dataset.providerAddress,
+        amountDrops: totalDrops,
+        memo: `sirius-loan:${dataset.datasetId}`,
       })
+      setTxHash(hash)
+
+      setStep("verifying-payment")
+      const verify = await apiPost<{ success: boolean; loanId?: string; reason?: string }>(
+        "/api/xrpl/verify-payment",
+        {
+          txHash: hash,
+          datasetId: dataset.datasetId,
+          borrowerAddress: address,
+          durationDays: parseFloat(duration),
+        }
+      )
+      if (!verify.success) {
+        throw new Error(verify.reason ?? "Payment verification failed")
+      }
 
       setStep("done")
       setTimeout(() => {
@@ -94,8 +128,9 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
   }
 
   const stepLabels: Record<FlowStep, string> = {
-    "idle": "Request Access",
-    "creating-loan": "Creating loan on XRPL...",
+    "idle": "Confirm & Pay with Otsu",
+    "awaiting-signature": "Check Otsu wallet for signature...",
+    "verifying-payment": "Verifying payment on XRPL...",
     "activating-key": "Activating decryption key...",
     "done": "Access granted!",
   }
@@ -123,17 +158,19 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
               type="number"
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
-              min="1"
+              min="0.01"
               max="365"
+              step="0.01"
               disabled={step !== "idle"}
               className="rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-foreground outline-none focus:border-white/30 disabled:opacity-50"
             />
           </div>
 
           <div className="flex items-center justify-between rounded-lg border border-accent/20 bg-accent/5 px-4 py-3">
-            <span className="text-sm text-muted">Estimated Cost</span>
+            <span className="text-sm text-muted">Total Cost</span>
             <span className="text-sm text-accent font-medium">
-              {(parseFloat(duration || "0") / 365 * 500 / 100).toFixed(2)} XRP
+              {totalXrp.toFixed(2)} XRP
+              <span className="ml-2 text-xs text-muted">({pricePerDay} XRP/day)</span>
             </span>
           </div>
 
@@ -175,14 +212,17 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
   )
 }
 
-function PoolCard({ vaultId, datasets, onSelect }: {
+function PoolCard({ vaultId, vaultName, datasets, onSelect }: {
   vaultId: string
+  vaultName: string | null
   datasets: Dataset[]
   onSelect: () => void
 }) {
-  const avgScore = datasets.reduce((s, d) => s + (d.boundlessProof?.assertions?.qualityScore ?? 0), 0) / datasets.length
+  const scores = datasets.map((d) => d.boundlessProof?.assertions?.qualityScore ?? 0)
+  const avgScore = scores.some((s) => s > 0) ? scores.reduce((a, b) => a + b, 0) / scores.filter((s) => s > 0).length : (datasets[0] as unknown as { qualityScore?: number })?.qualityScore ?? 0
   const totalRows = datasets.reduce((s, d) => s + d.entryCount, 0)
   const categories = [...new Set(datasets.map((d) => d.description.category))]
+  const poolName = datasets[0]?.description?.name ?? "On-chain Dataset"
 
   return (
     <button
@@ -192,7 +232,8 @@ function PoolCard({ vaultId, datasets, onSelect }: {
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
           <span className="text-xs text-muted">Lending Pool</span>
-          <span className="text-sm font-mono text-foreground">{vaultId.slice(0, 10)}...{vaultId.slice(-6)}</span>
+          <span className="text-sm font-semibold text-foreground truncate max-w-[220px]">{vaultName ?? poolName}</span>
+          <span className="text-[10px] font-mono text-muted">{vaultId.slice(0, 8)}...{vaultId.slice(-4)}</span>
         </div>
         <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-muted transition-colors group-hover:border-accent/40 group-hover:text-accent">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -236,16 +277,23 @@ export default function MarketplacePage() {
   const [selectedVault, setSelectedVault] = useState<string | null>(null)
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null)
   const [detailDataset, setDetailDataset] = useState<Dataset | null>(null)
+  const search = useSearchStore((s) => s.query)
 
   const isLoading = datasetsLoading || poolsLoading
 
   if (!allowed) return null
 
   // Build vault groups from on-chain data
-  const vaultGroups = new Map<string, Dataset[]>()
+  const vaultGroups = new Map<string, { name: string | null; datasets: Dataset[] }>()
   const onChainPools = poolsData?.pools ?? []
 
-  for (const pool of onChainPools.filter((p) => p.loanBrokerId && p.dataset?.name && p.dataset.name.length > 3)) {
+  for (const pool of onChainPools.filter((p) => {
+    if (!p.loanBrokerId) return false
+    const displayName = p.vaultName ?? p.dataset?.name ?? ""
+    if (displayName.length <= 3) return false
+    const entries = (p.dataset?.qualityCertificate?.entryCount as number) ?? 0
+    return entries > 0
+  })) {
     // Try to find matching dataset from Sirius registry
     const siriusDataset = datasets?.find((d) => d.mptIssuanceId === pool.mptIssuanceId)
 
@@ -253,10 +301,11 @@ export default function MarketplacePage() {
       datasetId: pool.mptIssuanceId,
       providerAddress: pool.issuer,
       description: {
-        name: pool.dataset?.name ?? "On-chain Dataset",
+        name: pool.vaultName ?? pool.dataset?.name ?? "On-chain Dataset",
         category: pool.dataset?.category ?? "defi",
         format: "jsonl",
         language: "en",
+        pricePerDay: pool.pricePerDay ?? pool.dataset?.pricePerDay ?? undefined,
       },
       manifestCid: pool.dataset?.ipfs ?? "",
       merkleRoot: "",
@@ -283,12 +332,15 @@ export default function MarketplacePage() {
       loanBrokerId: pool.loanBrokerId ?? undefined,
     }
 
-    const group = vaultGroups.get(pool.vaultId) ?? []
-    group.push(dataset)
+    const group = vaultGroups.get(pool.vaultId) ?? { name: null, datasets: [] }
+    if (!group.name && pool.dataset?.name) group.name = pool.dataset.name
+    group.datasets.push(dataset)
     vaultGroups.set(pool.vaultId, group)
   }
 
-  const selectedPoolDatasets = selectedVault ? vaultGroups.get(selectedVault) ?? [] : []
+  const selectedGroup = selectedVault ? vaultGroups.get(selectedVault) : null
+  const selectedPoolDatasets = selectedGroup?.datasets ?? []
+  const selectedVaultName = selectedGroup?.name ?? null
 
   return (
     <div className="flex flex-col gap-8">
@@ -305,11 +357,20 @@ export default function MarketplacePage() {
             <EmptyState title="No pools available" description="Check back later or deposit a dataset as a provider." />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {[...vaultGroups.entries()].map(([vaultId, group]) => (
+              {[...vaultGroups.entries()]
+                .filter(([, group]) => {
+                  if (!search.trim()) return true
+                  const q = search.toLowerCase()
+                  const name = (group.name ?? group.datasets[0]?.description?.name ?? "").toLowerCase()
+                  const cats = group.datasets.map((d) => d.description.category.toLowerCase()).join(" ")
+                  return name.includes(q) || cats.includes(q)
+                })
+                .map(([vaultId, group]) => (
                 <PoolCard
                   key={vaultId}
                   vaultId={vaultId}
-                  datasets={group}
+                  vaultName={group.name}
+                  datasets={group.datasets}
                   onSelect={() => setSelectedVault(vaultId)}
                 />
               ))}
@@ -328,7 +389,7 @@ export default function MarketplacePage() {
               </svg>
             </button>
             <div>
-              <h1 className="text-2xl font-bold tracking-wider">Pool Datasets</h1>
+              <h1 className="text-2xl font-bold tracking-wider">{selectedVaultName ?? "Pool Datasets"}</h1>
               <span className="text-xs text-muted font-mono">{selectedVault.slice(0, 10)}...{selectedVault.slice(-6)}</span>
             </div>
             <span className="ml-auto text-sm text-muted">{selectedPoolDatasets.length} dataset{selectedPoolDatasets.length !== 1 ? "s" : ""}</span>
