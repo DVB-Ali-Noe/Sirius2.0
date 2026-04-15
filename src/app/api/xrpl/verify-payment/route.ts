@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getClient } from "@/lib/xrpl/client";
 import { getLoanBroker } from "@/lib/xrpl/wallets";
 import { createLoanRecord, transitionLoan, getLoan, addPayment } from "@/lib/xrpl/loan-state";
-import { getDataset, listDatasets, getByMpt } from "@/lib/sirius/dataset-registry";
+import { getDataset, listDatasets, getByMpt, type DatasetRecord } from "@/lib/sirius/dataset-registry";
 import { activateLoanAccess, getWatermarkSeed } from "@/lib/sirius/xrpl-bridge";
 import { requireAuth, apiError, validationError } from "@/lib/api-utils";
 
@@ -29,6 +29,10 @@ export async function POST(request: NextRequest) {
       datasetId?: string;
       borrowerAddress?: string;
       durationDays?: number;
+      providerAddress?: string;
+      mptIssuanceId?: string;
+      vaultId?: string;
+      pricePerDay?: string;
     };
 
     if (!body.txHash) return validationError("txHash");
@@ -41,20 +45,39 @@ export async function POST(request: NextRequest) {
       const allDatasets = listDatasets();
       dataset = allDatasets.find((d) => d.datasetId === body.datasetId || d.mptIssuanceId === body.datasetId) ?? undefined;
     }
+    // Fallback: build minimal dataset from request params (Vercel multi-instance)
+    if (!dataset && body.providerAddress && body.mptIssuanceId) {
+      dataset = {
+        datasetId: body.datasetId!,
+        providerAddress: body.providerAddress,
+        mptIssuanceId: body.mptIssuanceId,
+        vaultId: body.vaultId ?? "",
+        pricePerDay: body.pricePerDay ?? "0.5",
+        description: { name: "dataset", description: "", category: "other" as const, language: "en", format: "jsonl" },
+        manifestCid: "",
+        merkleRoot: "",
+        entryCount: 0,
+        schemaHash: "",
+        boundlessProof: { proofId: "", commitment: "", assertions: { entryCount: 0, duplicateRate: "0%" } } as DatasetRecord["boundlessProof"],
+        masterKeyEncoded: "",
+        version: "1",
+        createdAt: Date.now(),
+      } satisfies DatasetRecord;
+    }
     if (!dataset) {
       return NextResponse.json(
         { success: false, reason: `dataset ${body.datasetId} not found — upload a dataset first` },
         { status: 404 }
       );
     }
-    if (!dataset.mptIssuanceId || !dataset.vaultId) {
+    if (!dataset.mptIssuanceId) {
       return NextResponse.json(
-        { success: false, reason: "dataset missing mpt or vault binding" },
+        { success: false, reason: "dataset missing mpt binding" },
         { status: 400 }
       );
     }
 
-    const pricePerDay = dataset.pricePerDay ?? dataset.description.pricePerDay ?? "0.5";
+    const pricePerDay = body.pricePerDay ?? dataset.pricePerDay ?? dataset.description.pricePerDay ?? "0.5";
     const priceNum = parseFloat(pricePerDay);
     if (!Number.isFinite(priceNum) || priceNum <= 0) {
       return NextResponse.json(
@@ -146,8 +169,8 @@ export async function POST(request: NextRequest) {
         borrower: body.borrowerAddress,
         provider: dataset.providerAddress,
         loanBroker: loanBroker.classicAddress,
-        vaultId: dataset.vaultId,
-        mptIssuanceId: dataset.mptIssuanceId,
+        vaultId: dataset.vaultId ?? "",
+        mptIssuanceId: dataset.mptIssuanceId ?? "",
         datasetId: dataset.datasetId,
         principalAmount: (priceNum * body.durationDays).toString(),
         interestRate: 0,

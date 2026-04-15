@@ -113,6 +113,10 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
           datasetId: dataset.datasetId,
           borrowerAddress: address,
           durationDays: durationNum,
+          providerAddress: dataset.providerAddress,
+          mptIssuanceId: dataset.mptIssuanceId,
+          vaultId: dataset.vaultId,
+          pricePerDay: pricePerDay.toString(),
         }
       )
       if (!verify.success) {
