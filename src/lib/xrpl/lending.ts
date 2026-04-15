@@ -1,4 +1,4 @@
-import { Wallet, LoanSet, LoanDelete, LoanBrokerSet } from "xrpl";
+import { Wallet, LoanSet, LoanDelete, LoanBrokerSet, LoanBrokerDelete } from "xrpl";
 import { getClient } from "./client";
 
 export async function createLoanBroker(
@@ -81,6 +81,25 @@ export async function deleteLoan(
   const meta = result.result.meta as { TransactionResult?: string } | undefined;
   if (meta?.TransactionResult !== "tesSUCCESS") {
     throw new Error(`LoanDelete failed: ${meta?.TransactionResult ?? "unknown"}`);
+  }
+}
+
+export async function deleteLoanBroker(
+  owner: Wallet,
+  loanBrokerId: string
+): Promise<void> {
+  const client = await getClient();
+
+  const tx: LoanBrokerDelete = {
+    TransactionType: "LoanBrokerDelete",
+    Account: owner.classicAddress,
+    LoanBrokerID: loanBrokerId,
+  };
+
+  const result = await client.submitAndWait(tx, { wallet: owner });
+  const meta = result.result.meta as { TransactionResult?: string } | undefined;
+  if (meta?.TransactionResult !== "tesSUCCESS") {
+    throw new Error(`LoanBrokerDelete failed: ${meta?.TransactionResult ?? "unknown"}`);
   }
 }
 

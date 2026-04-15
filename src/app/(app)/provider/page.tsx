@@ -4,11 +4,11 @@ import { useState, useCallback } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useWalletStore } from "@/stores/wallet"
 import { useRouteGuard } from "@/hooks/use-route-guard"
-import { useMyDatasets } from "@/hooks/use-my-datasets"
+import { useMyDatasets, type OnChainDataset } from "@/hooks/use-my-datasets"
 import { EmptyState } from "@/components/common/EmptyState"
 import { LoadingSpinner } from "@/components/common/LoadingSpinner"
 import { Toast } from "@/components/common/Toast"
-import { apiPost } from "@/lib/api-client"
+import { apiPost, apiGet } from "@/lib/api-client"
 import { XRPL_EXPLORER_URL } from "@/lib/xrpl-constants"
 
 interface FullUploadResult {
@@ -66,15 +66,99 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
         rows = trimmed.split("\n").filter(Boolean).map((line) => JSON.parse(line))
       }
 
-      setCurrentStep(`Uploading ${rows.length} rows — encrypt, IPFS, ZK proof, mint MPT, create vault...`)
+      const cm = (window as unknown as {
+        crossmark?: {
+          signAndSubmitAndWait: (tx: Record<string, unknown>) => Promise<{ response: { data: { txHash: string; resp?: { result?: { meta?: { mpt_issuance_id?: string } } } } } }>
+        }
+      }).crossmark
 
-      const result = await apiPost<FullUploadResult>("/api/provider/upload", {
+      // Step 1 — Sirius: encrypt, IPFS, ZK proof + prepare unsigned mint tx
+      setCurrentStep(`Encrypting & uploading ${rows.length} rows to IPFS...`)
+      const prepared = await apiPost<{
+        datasetId: string
+        manifestCid: string
+        merkleRoot: string
+        entryCount: number
+        qualityScore: number
+        transaction: Record<string, unknown>
+      }>("/api/provider/upload/prepare", {
         providerAddress,
         description: { name, category, format: "jsonl", language: "en" },
         rows,
         schema,
         pricePerDay,
       })
+
+      // Step 2 — Sign MPT mint with wallet
+      setCurrentStep("Sign MPT mint in your wallet...")
+      if (!cm) throw new Error("Wallet not connected — install Crossmark/Otsu")
+
+      const mintRes = await cm.signAndSubmitAndWait(prepared.transaction)
+      const txHash = mintRes?.response?.data?.hash
+      if (!txHash) throw new Error("MPT mint failed: no tx hash returned")
+
+      // Step 2b — Get mpt_issuance_id from ledger via tx hash (retry up to 10s)
+      setCurrentStep("Confirming mint on-chain...")
+      let mptIssuanceId: string | null = null
+      for (let i = 0; i < 10; i++) {
+        const txResult = await apiGet<{ mptIssuanceId: string | null; validated: boolean }>(`/api/xrpl/tx?hash=${txHash}`)
+        if (txResult.mptIssuanceId && txResult.validated) {
+          mptIssuanceId = txResult.mptIssuanceId
+          break
+        }
+        await new Promise((r) => setTimeout(r, 1000))
+      }
+      if (!mptIssuanceId) throw new Error("MPT mint failed: no issuance ID found on-chain")
+
+      // Step 3 — Register MPT: create vault + get authorize/deposit tx to sign
+      setCurrentStep("Creating vault on-chain...")
+      const registered = await apiPost<{
+        domainId: string
+        vaultId: string
+        transactions: {
+          mptAuthorize: Record<string, unknown>
+          vaultDeposit: Record<string, unknown>
+        }
+      }>("/api/provider/upload/register-mpt", {
+        providerAddress,
+        datasetId: prepared.datasetId,
+        mptIssuanceId,
+      })
+
+      // Step 4 — Sign authorize tx with wallet
+      setCurrentStep("Sign MPT authorization in your wallet...")
+      await cm.signAndSubmitAndWait(registered.transactions.mptAuthorize)
+
+      // Step 5 — Sign deposit tx with wallet
+      setCurrentStep("Sign vault deposit in your wallet...")
+      await cm.signAndSubmitAndWait(registered.transactions.vaultDeposit)
+
+      // Step 6 — Finalize
+      setCurrentStep("Finalizing...")
+      await apiPost("/api/provider/upload/finalize", {
+        datasetId: prepared.datasetId,
+        mptIssuanceId,
+        vaultId: registered.vaultId,
+      })
+
+      const result: FullUploadResult = {
+        success: true,
+        datasetId: prepared.datasetId,
+        mptIssuanceId,
+        vaultId: registered.vaultId,
+        manifestCid: prepared.manifestCid,
+        merkleRoot: prepared.merkleRoot,
+        entryCount: prepared.entryCount,
+        qualityScore: prepared.qualityScore,
+        pricePerDay,
+        steps: [
+          { step: "sirius_ingested", detail: `${prepared.entryCount} rows, CID: ${prepared.manifestCid}` },
+          { step: "mpt_minted", detail: mptIssuanceId },
+          { step: "vault_created", detail: registered.vaultId },
+          { step: "mpt_authorized", detail: "OK" },
+          { step: "mpt_deposited", detail: "1 MPT" },
+        ],
+      }
 
       setName("")
       setFile(null)
@@ -181,6 +265,192 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
   )
 }
 
+function DatasetModal({
+  dataset,
+  providerAddress,
+  onClose,
+  onDeleted,
+}: {
+  dataset: OnChainDataset
+  providerAddress: string
+  onClose: () => void
+  onDeleted: () => void
+}) {
+  const [deleting, setDeleting] = useState(false)
+  const [currentStep, setCurrentStep] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [steps, setSteps] = useState<Array<{ step: string; status: string; error?: string }>>([])
+  const [done, setDone] = useState(false)
+
+  const handleDelete = async () => {
+    setDeleting(true)
+    setError(null)
+    setSteps([])
+
+    const cm = (window as unknown as {
+      crossmark?: {
+        signAndSubmitAndWait: (tx: Record<string, unknown>) => Promise<unknown>
+      }
+    }).crossmark
+
+    if (!cm) {
+      setError("Wallet not connected — install Crossmark/Otsu")
+      setDeleting(false)
+      return
+    }
+
+    try {
+      // Phase 1: Get unsigned transactions
+      setCurrentStep("Preparing deletion...")
+      const prepared = await apiPost<{
+        phase: string
+        vaultId: string | null
+        loanBrokerId: string | null
+        transactions: Array<{ name: string; tx: Record<string, unknown> }>
+      }>("/api/provider/datasets/delete", {
+        action: "prepare",
+        mptIssuanceId: dataset.mptIssuanceId,
+        providerAddress,
+      })
+
+      // Phase 2: Sign each transaction with wallet
+      const clientSteps: typeof steps = []
+      for (const { name, tx } of prepared.transactions) {
+        setCurrentStep(`Sign "${name}" in your wallet...`)
+        try {
+          await cm.signAndSubmitAndWait(tx)
+          clientSteps.push({ step: name, status: "ok" })
+        } catch (e) {
+          const msg = (e as Error).message ?? "rejected"
+          if (msg.includes("tecNO_ENTRY") || msg.includes("tecEMPTY")) {
+            clientSteps.push({ step: name, status: "skipped", error: "already done" })
+          } else {
+            clientSteps.push({ step: name, status: "failed", error: msg })
+          }
+        }
+        setSteps([...clientSteps])
+      }
+
+      // Phase 3: Server finalizes (vault delete, loanBroker cleanup)
+      setCurrentStep("Server cleanup...")
+      const finalized = await apiPost<{
+        phase: string
+        status: string
+        steps: Array<{ step: string; status: string; error?: string }>
+      }>("/api/provider/datasets/delete", {
+        action: "finalize",
+        mptIssuanceId: dataset.mptIssuanceId,
+        ipfsCid: dataset.ipfs || undefined,
+      })
+
+      const allSteps = [...clientSteps, ...finalized.steps]
+      setSteps(allSteps)
+      setCurrentStep("")
+
+      const hasFailed = allSteps.some((s) => s.status === "failed")
+      setDone(true)
+      if (!hasFailed) {
+        setTimeout(() => onDeleted(), 1500)
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Delete failed"
+      if (msg.includes("active loans")) {
+        setError("Ce dataset a des emprunts actifs — suppression impossible.")
+      } else {
+        setError(msg)
+      }
+      setCurrentStep("")
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const hasFailed = steps.some((s) => s.status === "failed")
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="relative w-full max-w-lg rounded-2xl border border-border bg-surface p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button onClick={onClose} className="absolute right-4 top-4 text-muted hover:text-foreground cursor-pointer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+
+        <h2 className="text-lg font-medium text-foreground mb-4 pr-8 truncate">{dataset.name}</h2>
+
+        <div className="grid gap-2 text-xs text-foreground mb-4">
+          <div className="flex justify-between"><span className="text-muted">MPT ID</span><span className="font-mono truncate ml-4">{dataset.mptIssuanceId.slice(0, 16)}...{dataset.mptIssuanceId.slice(-8)}</span></div>
+          <div className="flex justify-between"><span className="text-muted">Category</span><span>{dataset.category}</span></div>
+          <div className="flex justify-between"><span className="text-muted">Entries</span><span>{dataset.entryCount} rows</span></div>
+          <div className="flex justify-between"><span className="text-muted">Quality Score</span><span className="text-positive font-bold">{dataset.qualityScore}/100</span></div>
+          <div className="flex justify-between"><span className="text-muted">Duplicates</span><span>{dataset.duplicateRate}</span></div>
+          {dataset.schema && <div className="flex justify-between"><span className="text-muted">Schema</span><span>{dataset.schema}</span></div>}
+          {dataset.ipfs && <div className="flex justify-between"><span className="text-muted">IPFS</span><span className="font-mono truncate ml-4">{dataset.ipfs.slice(0, 20)}...</span></div>}
+        </div>
+
+        <a
+          href={`${XRPL_EXPLORER_URL}/mpt/${dataset.mptIssuanceId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mb-4 flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-4 py-2 text-xs uppercase tracking-widest text-accent transition-colors hover:bg-accent/20 w-fit"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+          View on Explorer
+        </a>
+
+        {error && (
+          <div className="mb-4 rounded-lg border border-negative/30 bg-negative/5 px-4 py-3 text-xs text-negative">
+            {error}
+          </div>
+        )}
+
+        {deleting && (
+          <div className="mb-4 rounded-lg border border-accent/20 bg-accent/5 p-3 text-xs">
+            {steps.length > 0 && steps.map((s, i) => (
+              <p key={i} className="text-muted">
+                {s.status === "ok" ? "✓" : s.status === "skipped" ? "–" : "✗"} {s.step}
+              </p>
+            ))}
+            {currentStep && (
+              <p className="flex items-center gap-2 text-accent mt-1">
+                <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+                {currentStep}
+              </p>
+            )}
+          </div>
+        )}
+
+        {done && (
+          <div className={`mb-4 rounded-lg border p-3 text-xs ${!hasFailed ? "border-positive/30 bg-positive/5" : "border-warning/30 bg-warning/5"}`}>
+            <p className="font-medium mb-1 text-foreground">{hasFailed ? "Suppression partielle" : "Dataset supprime"}</p>
+            {steps.map((s, i) => (
+              <p key={i} className="text-muted">
+                {s.status === "ok" ? "✓" : s.status === "skipped" ? "–" : "✗"} {s.step} {s.error ? `(${s.error})` : ""}
+              </p>
+            ))}
+          </div>
+        )}
+
+        {!done && !deleting && !error && (
+          <button
+            onClick={handleDelete}
+            className="w-full rounded-full border border-negative/50 bg-negative/10 px-6 py-2.5 text-sm uppercase tracking-widest text-negative transition-colors hover:bg-negative/20 cursor-pointer"
+          >
+            Supprimer le dataset
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function Row({ label, value, copy }: { label: string; value: string; copy?: boolean }) {
   const [copied, setCopied] = useState(false)
   return (
@@ -208,6 +478,8 @@ export default function ProviderPage() {
   const { data: myDatasetsData, isLoading: datasetsLoading } = useMyDatasets()
   const [toast, setToast] = useState<{ msg: string; variant: "success" | "error" } | null>(null)
   const [uploadResult, setUploadResult] = useState<FullUploadResult | null>(null)
+  const [selectedDataset, setSelectedDataset] = useState<OnChainDataset | null>(null)
+  const qc = useQueryClient()
 
   if (!allowed) return null
 
@@ -289,7 +561,11 @@ export default function ProviderPage() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {myDatasets.map((d) => (
-              <div key={d.mptIssuanceId} className="flex flex-col gap-3 rounded-2xl border border-border bg-surface/50 p-5">
+              <div
+                key={d.mptIssuanceId}
+                onClick={() => setSelectedDataset(d)}
+                className="flex flex-col gap-3 rounded-2xl border border-border bg-surface/50 p-5 cursor-pointer transition-colors hover:border-white/20 hover:bg-surface/80"
+              >
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-foreground truncate">{d.name}</h3>
                   <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 text-xs font-bold"
@@ -307,13 +583,35 @@ export default function ProviderPage() {
                 )}
                 <div className="flex items-center gap-3">
                   <span className="text-[10px] text-positive">ZK Verified</span>
-                  <a href={`${XRPL_EXPLORER_URL}/mpt/${d.mptIssuanceId}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-accent hover:underline">Explorer</a>
+                  <a
+                    href={`${XRPL_EXPLORER_URL}/mpt/${d.mptIssuanceId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] text-accent hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Explorer
+                  </a>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {selectedDataset && address && (
+        <DatasetModal
+          dataset={selectedDataset}
+          providerAddress={address}
+          onClose={() => setSelectedDataset(null)}
+          onDeleted={() => {
+            setSelectedDataset(null)
+            setToast({ msg: "Dataset supprime on-chain", variant: "success" })
+            qc.invalidateQueries({ queryKey: ["my-datasets"] })
+            qc.invalidateQueries({ queryKey: ["onchain-pools"] })
+          }}
+        />
+      )}
 
       {toast && <Toast message={toast.msg} variant={toast.variant} onClose={() => setToast(null)} />}
     </div>

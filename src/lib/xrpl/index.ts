@@ -10,6 +10,7 @@ export {
   mintDatasetMPT,
   authorizeMPTHolder,
   holderOptInMPT,
+  destroyMPT,
   type DatasetMetadata,
   type DatasetDescription,
   buildMPTokenMetadata,
@@ -26,11 +27,14 @@ export {
   createLendingPool,
   depositToVault,
   withdrawFromVault,
+  deleteVault,
+  clawbackVault,
 } from "./vault";
 export {
   createLoanBroker,
   createLoan,
   deleteLoan,
+  deleteLoanBroker,
   LOAN_FLAGS,
   LOAN_MANAGE_FLAGS,
 } from "./lending";
@@ -43,6 +47,8 @@ export {
   checkDefault,
   getLoan,
   getAllLoans,
+  removeLoan,
+  clearAllLoans,
   type LoanStatus,
   type LoanRecord,
 } from "./loan-state";

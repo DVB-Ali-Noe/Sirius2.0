@@ -41,10 +41,11 @@ export function ConnectButton() {
     setConnecting(true);
     try {
       if (wallet === "crossmark") {
-        const cm = (window as unknown as { crossmark?: { signInAndWait: () => Promise<{ response: { data: { address: string } } }> } }).crossmark;
-        if (!cm) throw new Error("Crossmark/Otsu not detected");
-        const res = await cm.signInAndWait();
-        const addr = res?.response?.data?.address;
+        const w = (window as unknown as { xrpl?: { disconnect: () => Promise<void>; connect: () => Promise<{ address: string }> } }).xrpl;
+        if (!w) throw new Error("Otsu not detected");
+        try { await w.disconnect(); } catch {}
+        const res = await w.connect();
+        const addr = res?.address;
         if (!addr) throw new Error("No address returned");
         setConnected(addr, "wasm-devnet");
       } else {

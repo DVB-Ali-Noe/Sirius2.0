@@ -103,4 +103,19 @@ export function purgeExpired(): number {
   return n;
 }
 
+export function removeByLoan(loanId: string): boolean {
+  const keyId = byLoanId.get(loanId);
+  if (!keyId) return false;
+  keys.delete(keyId);
+  byLoanId.delete(loanId);
+  return true;
+}
+
+export function clearAllKeys(): number {
+  const count = keys.size;
+  keys.clear();
+  byLoanId.clear();
+  return count;
+}
+
 export type { EncryptedPayload };

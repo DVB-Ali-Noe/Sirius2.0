@@ -3,6 +3,7 @@ import {
   MPTokenIssuanceCreate,
   MPTokenIssuanceCreateFlags,
   MPTokenAuthorize,
+  MPTokenIssuanceDestroy,
 } from "xrpl";
 import type { MPTokenIssuanceCreateMetadata } from "xrpl/dist/npm/models/transactions/MPTokenIssuanceCreate";
 import { getClient } from "./client";
@@ -113,4 +114,23 @@ export async function holderOptInMPT(
   };
 
   await client.submitAndWait(tx, { wallet: holder });
+}
+
+export async function destroyMPT(
+  issuer: Wallet,
+  mptIssuanceId: string
+): Promise<void> {
+  const client = await getClient();
+
+  const tx: MPTokenIssuanceDestroy = {
+    TransactionType: "MPTokenIssuanceDestroy",
+    Account: issuer.classicAddress,
+    MPTokenIssuanceID: mptIssuanceId,
+  };
+
+  const result = await client.submitAndWait(tx, { wallet: issuer });
+  const meta = result.result.meta as { TransactionResult?: string } | undefined;
+  if (meta?.TransactionResult !== "tesSUCCESS") {
+    throw new Error(`MPTokenIssuanceDestroy failed: ${meta?.TransactionResult ?? "unknown"}`);
+  }
 }

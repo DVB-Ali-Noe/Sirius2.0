@@ -124,3 +124,13 @@ export function getLoan(loanId: string): LoanRecord | undefined {
 export function getAllLoans(): LoanRecord[] {
   return Array.from(loans.values());
 }
+
+export function removeLoan(loanId: string): boolean {
+  return loans.delete(loanId);
+}
+
+export function clearAllLoans(): number {
+  const count = loans.size;
+  loans.clear();
+  return count;
+}

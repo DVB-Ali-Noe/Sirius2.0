@@ -73,3 +73,18 @@ export function getByMpt(mptIssuanceId: string): DatasetRecord | undefined {
 export function listDatasets(): DatasetRecord[] {
   return [...datasets.values()];
 }
+
+export function unregisterDataset(datasetId: string): boolean {
+  const record = datasets.get(datasetId);
+  if (!record) return false;
+  if (record.mptIssuanceId) byMpt.delete(record.mptIssuanceId);
+  datasets.delete(datasetId);
+  return true;
+}
+
+export function clearAllDatasets(): number {
+  const count = datasets.size;
+  datasets.clear();
+  byMpt.clear();
+  return count;
+}
