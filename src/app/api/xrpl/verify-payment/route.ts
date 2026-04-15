@@ -201,15 +201,16 @@ export async function POST(request: NextRequest) {
       refreshed.status = "ACTIVE";
     }
 
+    let keyId: string | null = null;
+    let watermarkSeedPrefix: string | null = null;
     const activation = activateLoanAccess(loanId, undefined, ttlMs);
-    if (!activation.ok) {
-      return NextResponse.json(
-        { success: false, reason: `key activation failed: ${activation.reason}` },
-        { status: 500 }
-      );
+    if (activation.ok) {
+      keyId = activation.keyId;
+      const seed = getWatermarkSeed(loanId);
+      watermarkSeedPrefix = seed ? seed.seed.slice(0, 16) : null;
+    } else {
+      console.warn("[verify-payment] Key activation skipped:", activation.reason);
     }
-
-    const seed = getWatermarkSeed(loanId);
 
     return NextResponse.json({
       success: true,
@@ -218,8 +219,8 @@ export async function POST(request: NextRequest) {
       durationDays: body.durationDays,
       amountPaid: dropsToXrp(amountDrops),
       pricePerDay,
-      keyId: activation.keyId,
-      watermarkSeedPrefix: seed ? seed.seed.slice(0, 16) : null,
+      keyId,
+      watermarkSeedPrefix,
     });
   } catch (error) {
     console.error("[verify-payment] Error:", error);
