@@ -42,6 +42,8 @@ function decodeVaultData(dataHex: unknown): { name: string | null; pricePerDay: 
   }
 }
 
+export const maxDuration = 120;
+
 export async function GET() {
   try {
     const client = await getClient();

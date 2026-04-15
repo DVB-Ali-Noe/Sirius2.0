@@ -17,6 +17,8 @@ function dropsToXrp(drops: string | number): number {
   return n / 1_000_000;
 }
 
+export const maxDuration = 120;
+
 export async function POST(request: NextRequest) {
   const authErr = requireAuth(request);
   if (authErr) return authErr;

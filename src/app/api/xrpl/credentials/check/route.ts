@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getClient } from "@/lib/xrpl";
 import { apiError, validationError } from "@/lib/api-utils";
 
+export const maxDuration = 120;
+
 export async function GET(request: NextRequest) {
   try {
     const address = request.nextUrl.searchParams.get("address");

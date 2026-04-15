@@ -25,6 +25,9 @@ interface StepResult {
  * Phase 2 — POST { action: "finalize", mptIssuanceId }
  *   Server cleans up its own objects (vault, loanBroker, in-memory stores).
  */
+
+export const maxDuration = 120;
+
 export async function POST(request: NextRequest) {
   const authErr = requireAuth(request);
   if (authErr) return authErr;

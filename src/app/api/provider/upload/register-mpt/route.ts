@@ -9,6 +9,8 @@ import {
 } from "@/lib/xrpl";
 import { requireAuth, apiError, validationError } from "@/lib/api-utils";
 
+export const maxDuration = 120;
+
 export async function POST(request: NextRequest) {
   const authErr = requireAuth(request);
   if (authErr) return authErr;

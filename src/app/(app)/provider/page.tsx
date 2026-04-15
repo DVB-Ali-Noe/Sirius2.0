@@ -68,7 +68,7 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
 
       const cm = (window as unknown as {
         crossmark?: {
-          signAndSubmitAndWait: (tx: Record<string, unknown>) => Promise<{ response: { data: { txHash: string; resp?: { result?: { meta?: { mpt_issuance_id?: string } } } } } }>
+          signAndSubmitAndWait: (tx: Record<string, unknown>) => Promise<{ response: { data: { hash: string; resp?: { result?: { meta?: { mpt_issuance_id?: string } } } } } }>
         }
       }).crossmark
 

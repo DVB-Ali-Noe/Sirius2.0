@@ -15,6 +15,8 @@ interface OnChainDataset {
   createdAt: number;
 }
 
+export const maxDuration = 120;
+
 export async function GET(request: NextRequest) {
   try {
     const address = request.nextUrl.searchParams.get("address");

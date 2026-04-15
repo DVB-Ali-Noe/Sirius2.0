@@ -12,13 +12,17 @@ export interface LoanRecord {
   loanBroker: string
   vaultId: string
   mptIssuanceId: string
+  datasetId?: string
   principalAmount: string
+  pricePerDay?: string
   interestRate: number
   paymentTotal: number
+  durationDays?: number
   paymentInterval: number
   gracePeriod: number
   status: LoanStatus
   createdAt: number
+  expiresAt?: number
   completedAt?: number
   payments: Array<{ amount: string; timestamp: number; txHash: string }>
   pricePerDay?: string

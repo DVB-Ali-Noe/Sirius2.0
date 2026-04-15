@@ -1,7 +1,9 @@
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
 
-const DATA_DIR = join(process.cwd(), ".sirius-data");
+const DATA_DIR = process.env.VERCEL
+  ? join("/tmp", ".sirius-data")
+  : join(process.cwd(), ".sirius-data");
 
 try { mkdirSync(DATA_DIR, { recursive: true }); } catch {}
 
