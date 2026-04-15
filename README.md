@@ -2,6 +2,23 @@
 
 > **DeFi applied to data.** Borrow and lend access to AI datasets using XRPL's native lending infrastructure. Providers earn XRP yield. Borrowers get time-limited, ZK-certified dataset access. No one owns the data permanently.
 
+**🌐 Live Demo:** _coming soon on Vercel_
+**🔗 Built on:** XRPL wasm devnet (`wss://wasm.devnet.rippletest.net:51233`)
+
+---
+
+## Quick Start (local dev)
+
+```bash
+git clone https://github.com/DVB-Ali-Noe/Sirius2.0.git
+cd Sirius2.0
+npm install
+cp .env.example .env       # then fill in the values
+npm run dev                # http://localhost:3000
+```
+
+Required env vars are listed in [.env.example](.env.example).
+
 ---
 
 ## Table of Contents

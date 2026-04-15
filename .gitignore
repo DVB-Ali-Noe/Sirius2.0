@@ -72,6 +72,18 @@ yarn.lock
 .turbo/
 .vercel/
 .parcel-cache/
+# Next.js
+next-env.d.ts
+
+# npm (on garde package-lock.json pour Vercel, décommenter pour ignorer)
+# package-lock.json
+
+# Vercel
+.vercel
+
+# Internal docs (pas besoin sur GitHub)
+MVP-STATUS.md
+audit.md
 
 # Misc
 *.tmp
