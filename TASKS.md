@@ -1,13 +1,13 @@
 # Taches MVP — Split Dev A / Dev B
 
-> Branche : `feature_mvp` | Derniere mise a jour : 14 avril 2026
+> Branche : `develop` | Derniere mise a jour : 15 avril 2026
 
 ---
 
 ## Contexte
 
 - Reseau : wasm devnet (`wss://wasm.devnet.rippletest.net:51233`, network ID 2002)
-- Wallet signing : Otsu (supporte custom networks). Tester en premier. Fallback : seed .env cote serveur avec ecran "Confirm Payment" dans l'UI
+- Wallet signing : Otsu (supporte custom networks, testé et fonctionnel). Fallback serveur non nécessaire
 - Pricing : le provider fixe un `pricePerDay` (en XRP) a l'upload. Le borrower choisit une duree, le prix est calcule automatiquement
 - Paiement : vrai Payment XRP du borrower vers le provider. Pas de mock. Verifie on-chain
 - Toutes les durees sont en jours. Stockees en ms cote serveur (jours × 86400000)
@@ -16,7 +16,7 @@
 
 ## DEV A — Backend + XRPL (on-chain)
 
-### A1. Vault name on-chain
+### ~~A1. Vault name on-chain~~ ✅ DONE
 
 **Fichiers concernes :**
 - `src/lib/xrpl/vault.ts` — `createLendingPool()`
@@ -32,7 +32,7 @@
 
 ---
 
-### A2. Champ `pricePerDay` dans le modele dataset
+### ~~A2. Champ `pricePerDay` dans le modele dataset~~ ✅ DONE
 
 **Fichiers concernes :**
 - `src/lib/xrpl/mpt.ts` — `DatasetDescription`, `buildMPTokenMetadata()`
@@ -49,7 +49,7 @@
 
 ---
 
-### A3. Route verification paiement + activation acces
+### ~~A3. Route verification paiement + activation acces~~ ✅ DONE
 
 **Fichier a creer :**
 - `src/app/api/xrpl/verify-payment/route.ts`
@@ -81,7 +81,7 @@ Body: { txHash, datasetId, borrowerAddress, durationDays }
 
 ---
 
-### A4. Route extension de duree
+### ~~A4. Route extension de duree~~ ✅ DONE
 
 **Fichier a creer :**
 - `src/app/api/xrpl/extend-access/route.ts`
@@ -111,7 +111,7 @@ Body: { txHash, loanId, additionalDays }
 
 ---
 
-### A5. Adapter la demo route
+### ~~A5. Adapter la demo route~~ ✅ DONE
 
 **Fichier :** `src/app/api/xrpl/demo/route.ts`
 
@@ -148,7 +148,7 @@ Body: { txHash, loanId, additionalDays }
 
 ---
 
-### B3. Upload Provider — Champ `pricePerDay`
+### ~~B3. Upload Provider — Champ `pricePerDay`~~ ✅ DONE
 
 **Fichier :** `src/app/(app)/provider/page.tsx`
 
@@ -159,7 +159,7 @@ Body: { txHash, loanId, additionalDays }
 
 ---
 
-### B4. Borrow flow — Paiement reel
+### ~~B4. Borrow flow — Paiement reel~~ ✅ DONE
 
 **Fichier :** `src/app/(app)/marketplace/page.tsx` — `LoanRequestModal`
 
@@ -184,7 +184,7 @@ Le flow actuel est : choisir duree → creer loan (mock) → activer cle → red
 
 ---
 
-### B5. Borrower dashboard — Expiration + Extension
+### ~~B5. Borrower dashboard — Expiration + Extension~~ ✅ DONE
 
 **Fichier :** `src/app/(app)/borrower/page.tsx`
 
@@ -271,13 +271,22 @@ Si B1 echoue (Otsu ne signe pas sur network ID 2002), passer en **mode serveur s
 
 ## Recapitulatif
 
-| Tache | Dev A (Backend) | Dev B (Frontend) |
-|-------|:---:|:---:|
-| Vault name on-chain | A1 | B2 (affichage) |
-| Prix par jour | A2 | B3 (champ form) |
-| Paiement borrower | A3 (verification) | B4 (flow UI + Otsu) |
-| Extension duree | A4 (verification) | B5 (UI expiration + modal) |
-| Demo route update | A5 | — |
-| Test Otsu | — | B1 (prerequis) |
-| Section docs landing | — | B6 |
-| Fallback sign serveur | A (si B1 echoue) | B (UI adapt) |
+| Tache | Dev A (Backend) | Dev B (Frontend) | Statut |
+|-------|:---:|:---:|:---:|
+| Vault name on-chain | A1 | B2 (affichage) | ✅ |
+| Prix par jour | A2 | B3 (champ form) | ✅ |
+| Paiement borrower | A3 (verification) | B4 (flow UI + Otsu) | ✅ |
+| Extension duree | A4 (verification) | B5 (UI expiration + modal) | ✅ |
+| Demo route update | A5 | — | ✅ |
+| Test Otsu | — | B1 (prerequis) | ✅ |
+| Section docs landing | — | B6 | ✅ |
+| Fallback sign serveur | N/A (Otsu fonctionne) | N/A | ✅ |
+
+## Reste a faire (post-MVP)
+
+| Tache | Priorite | Details |
+|-------|----------|---------|
+| Migrer `window.crossmark` → `window.xrpl` dans provider upload | P0 | provider/page.tsx lignes 69-96, 130, 134, 292-323 |
+| Fix build — unifier LoanRecord types | P0 | use-loans.ts vs loan-state.ts |
+| Fix ESLint errors (9) | P1 | layout.tsx (any), Blob.tsx (Math.random render) |
+| Sécu — NEXT_PUBLIC_API_KEY expose la clé API | P2 | En prod, passer à auth wallet-signée |
