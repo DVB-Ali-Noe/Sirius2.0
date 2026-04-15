@@ -21,6 +21,10 @@ export interface LoanRecord {
   createdAt: number
   completedAt?: number
   payments: Array<{ amount: string; timestamp: number; txHash: string }>
+  pricePerDay?: string
+  durationDays?: number
+  expiresAt?: number
+  activatedAt?: number
 }
 
 export interface RepaymentInfo {

@@ -10,6 +10,7 @@ interface DatasetDescription {
   language?: string
   format?: string
   sampleFields?: string[]
+  pricePerDay?: string
 }
 
 interface BoundlessProof {

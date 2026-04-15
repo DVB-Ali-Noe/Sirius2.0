@@ -94,7 +94,7 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
       if (!cm) throw new Error("Wallet not connected — install Crossmark/Otsu")
 
       const mintRes = await cm.signAndSubmitAndWait(prepared.transaction)
-      const txHash = mintRes?.response?.data?.hash
+      const txHash = mintRes?.response?.data?.txHash
       if (!txHash) throw new Error("MPT mint failed: no tx hash returned")
 
       // Step 2b — Get mpt_issuance_id from ledger via tx hash (retry up to 10s)
