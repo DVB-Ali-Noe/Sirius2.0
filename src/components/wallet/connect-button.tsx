@@ -4,27 +4,57 @@ import { useState, useRef, useEffect } from "react";
 import { useWalletStore } from "@/stores/wallet";
 import { truncateAddress } from "@/lib/utils";
 import { getWalletManager } from "@/lib/wallet/manager";
-import { triggerWalletConnect } from "@/components/wallet/wallet-connector";
+
+type WalletOption = "crossmark" | "gemwallet" | "xaman";
+
+const WALLET_OPTIONS: { id: WalletOption; name: string }[] = [
+  { id: "crossmark", name: "Crossmark / Otsu" },
+  { id: "gemwallet", name: "GemWallet" },
+  { id: "xaman", name: "Xaman" },
+];
 
 export function ConnectButton() {
-  const { connected, address, connecting } = useWalletStore();
+  const { connected, address, connecting, setConnecting } = useWalletStore();
   const [open, setOpen] = useState(false);
+  const [showWalletPicker, setShowWalletPicker] = useState(false);
   const [copied, setCopied] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setShowWalletPicker(false);
     }
 
-    if (open) {
+    if (open || showWalletPicker) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
+  }, [open, showWalletPicker]);
+
+  const { setConnected } = useWalletStore();
+
+  const handleWalletSelect = async (wallet: WalletOption) => {
+    setShowWalletPicker(false);
+    setConnecting(true);
+    try {
+      if (wallet === "crossmark") {
+        const cm = (window as unknown as { crossmark?: { signInAndWait: () => Promise<{ response: { data: { address: string } } }> } }).crossmark;
+        if (!cm) throw new Error("Crossmark/Otsu not detected");
+        const res = await cm.signInAndWait();
+        const addr = res?.response?.data?.address;
+        if (!addr) throw new Error("No address returned");
+        setConnected(addr, "wasm-devnet");
+      } else {
+        const manager = getWalletManager();
+        await manager.connect(wallet);
+      }
+    } catch {
+      setConnecting(false);
+    }
+  };
 
   const baseStyle =
     "cursor-pointer rounded-full border border-white/80 bg-white/5 px-7 py-2.5 text-sm text-white backdrop-blur-sm transition-all duration-200";
@@ -39,9 +69,25 @@ export function ConnectButton() {
 
   if (!connected || !address) {
     return (
-      <button onClick={triggerWalletConnect} className={`${baseStyle} uppercase tracking-widest`}>
-        Connect
-      </button>
+      <div ref={pickerRef} className="relative">
+        <button onClick={() => setShowWalletPicker(!showWalletPicker)} className={`${baseStyle} uppercase tracking-widest`}>
+          Connect
+        </button>
+        {showWalletPicker && (
+          <div className="absolute right-0 top-full mt-2 min-w-[220px] overflow-hidden rounded-xl border border-border bg-surface shadow-lg z-50">
+            <div className="px-4 py-3 text-xs text-muted uppercase tracking-wider border-b border-border">Connect Wallet</div>
+            {WALLET_OPTIONS.map((w) => (
+              <button
+                key={w.id}
+                onClick={() => handleWalletSelect(w.id)}
+                className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-foreground transition-colors hover:bg-white/5"
+              >
+                {w.name}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     );
   }
 

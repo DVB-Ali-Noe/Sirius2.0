@@ -175,8 +175,9 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
   )
 }
 
-function PoolCard({ vaultId, datasets, onSelect }: {
+function PoolCard({ vaultId, vaultName, datasets, onSelect }: {
   vaultId: string
+  vaultName: string | null
   datasets: Dataset[]
   onSelect: () => void
 }) {
@@ -192,7 +193,11 @@ function PoolCard({ vaultId, datasets, onSelect }: {
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
           <span className="text-xs text-muted">Lending Pool</span>
-          <span className="text-sm font-mono text-foreground">{vaultId.slice(0, 10)}...{vaultId.slice(-6)}</span>
+          {vaultName ? (
+            <span className="text-sm font-medium text-foreground">{vaultName}</span>
+          ) : (
+            <span className="text-sm font-mono text-foreground">{vaultId.slice(0, 10)}...{vaultId.slice(-6)}</span>
+          )}
         </div>
         <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-muted transition-colors group-hover:border-accent/40 group-hover:text-accent">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -242,7 +247,7 @@ export default function MarketplacePage() {
   if (!allowed) return null
 
   // Build vault groups from on-chain data
-  const vaultGroups = new Map<string, Dataset[]>()
+  const vaultGroups = new Map<string, { name: string | null; datasets: Dataset[] }>()
   const onChainPools = poolsData?.pools ?? []
 
   for (const pool of onChainPools.filter((p) => p.loanBrokerId && p.dataset?.name && p.dataset.name.length > 3)) {
@@ -283,12 +288,15 @@ export default function MarketplacePage() {
       loanBrokerId: pool.loanBrokerId ?? undefined,
     }
 
-    const group = vaultGroups.get(pool.vaultId) ?? []
-    group.push(dataset)
+    const group = vaultGroups.get(pool.vaultId) ?? { name: null, datasets: [] }
+    if (!group.name && pool.dataset?.name) group.name = pool.dataset.name
+    group.datasets.push(dataset)
     vaultGroups.set(pool.vaultId, group)
   }
 
-  const selectedPoolDatasets = selectedVault ? vaultGroups.get(selectedVault) ?? [] : []
+  const selectedGroup = selectedVault ? vaultGroups.get(selectedVault) : null
+  const selectedPoolDatasets = selectedGroup?.datasets ?? []
+  const selectedVaultName = selectedGroup?.name ?? null
 
   return (
     <div className="flex flex-col gap-8">
@@ -309,7 +317,8 @@ export default function MarketplacePage() {
                 <PoolCard
                   key={vaultId}
                   vaultId={vaultId}
-                  datasets={group}
+                  vaultName={group.name}
+                  datasets={group.datasets}
                   onSelect={() => setSelectedVault(vaultId)}
                 />
               ))}
@@ -328,7 +337,7 @@ export default function MarketplacePage() {
               </svg>
             </button>
             <div>
-              <h1 className="text-2xl font-bold tracking-wider">Pool Datasets</h1>
+              <h1 className="text-2xl font-bold tracking-wider">{selectedVaultName ?? "Pool Datasets"}</h1>
               <span className="text-xs text-muted font-mono">{selectedVault.slice(0, 10)}...{selectedVault.slice(-6)}</span>
             </div>
             <span className="ml-auto text-sm text-muted">{selectedPoolDatasets.length} dataset{selectedPoolDatasets.length !== 1 ? "s" : ""}</span>

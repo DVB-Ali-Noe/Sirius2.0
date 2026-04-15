@@ -7,7 +7,7 @@
 ## Contexte
 
 - Reseau : wasm devnet (`wss://wasm.devnet.rippletest.net:51233`, network ID 2002)
-- Wallet signing : Crossmark (supporte custom networks). Tester en premier. Fallback : seed .env cote serveur avec ecran "Confirm Payment" dans l'UI
+- Wallet signing : Otsu (supporte custom networks). Tester en premier. Fallback : seed .env cote serveur avec ecran "Confirm Payment" dans l'UI
 - Pricing : le provider fixe un `pricePerDay` (en XRP) a l'upload. Le borrower choisit une duree, le prix est calcule automatiquement
 - Paiement : vrai Payment XRP du borrower vers le provider. Pas de mock. Verifie on-chain
 - Toutes les durees sont en jours. Stockees en ms cote serveur (jours × 86400000)
@@ -122,23 +122,23 @@ Body: { txHash, loanId, additionalDays }
 
 ## DEV B — Frontend + Wallet
 
-### B1. Tester Crossmark sur wasm devnet
+### ~~B1. Tester Otsu sur wasm devnet~~ ✅ DONE
 
 **Avant de coder quoi que ce soit, tester :**
 
-1. Installer l'extension Crossmark
-2. Dans Crossmark settings > Custom Networks, ajouter :
+1. Installer l'extension Otsu
+2. Dans Otsu settings > Custom Networks, ajouter :
    - Name : `XRPL Wasm Devnet`
    - URL : `wss://wasm.devnet.rippletest.net:51233`
    - Network ID : `2002`
-3. Importer le seed borrower du `.env` dans Crossmark
+3. Importer le seed borrower du `.env` dans Otsu
 4. Tester un `signAndSubmit` basique (Payment de 1 XRP vers le provider)
 5. **Si ca marche** : continuer avec B2-B6
 6. **Si ca marche pas** : implementer l'option fallback (cf section Fallback en bas)
 
 ---
 
-### B2. Marketplace — Afficher le nom du vault
+### ~~B2. Marketplace — Afficher le nom du vault~~ ✅ DONE
 
 **Fichier :** `src/app/(app)/marketplace/page.tsx`
 
@@ -172,15 +172,15 @@ Le flow actuel est : choisir duree → creer loan (mock) → activer cle → red
 3. Bouton **"Pay X XRP"**
 4. Au clic :
    - Construire la tx Payment : `{ TransactionType: "Payment", Destination: providerAddress, Amount: xrpToDrops(total) }`
-   - Signer via Crossmark (`signAndSubmit` depuis xrpl-connect / wallet manager)
+   - Signer via Otsu (`signAndSubmit` depuis xrpl-connect / wallet manager)
    - Recuperer le `txHash` de la reponse
    - Appeler `POST /api/xrpl/verify-payment` avec `{ txHash, datasetId, borrowerAddress, durationDays }`
    - Si success → redirect vers `/borrower`
    - Si echec → toast erreur
 
 **Fichiers a modifier aussi :**
-- `src/lib/wallet/manager.ts` — verifier que `signAndSubmit` est expose et fonctionne avec Crossmark
-- `src/stores/wallet.ts` — si besoin d'ajouter le provider connecte (Crossmark vs Xaman)
+- `src/lib/wallet/manager.ts` — verifier que `signAndSubmit` est expose et fonctionne avec Otsu
+- `src/stores/wallet.ts` — si besoin d'ajouter le provider connecte (Otsu vs Xaman)
 
 ---
 
@@ -198,13 +198,13 @@ Le flow actuel est : choisir duree → creer loan (mock) → activer cle → red
    - Select duree supplementaire (7, 14, 30 jours)
    - Prix affiche : `pricePerDay × additionalDays` XRP
    - Bouton **"Pay X XRP"**
-   - Meme flow que B4 : signer via Crossmark → `txHash` → appeler `POST /api/xrpl/extend-access`
+   - Meme flow que B4 : signer via Otsu → `txHash` → appeler `POST /api/xrpl/extend-access`
    - Si success → refresh la liste, nouveau `expiresAt` affiche
 4. Si le loan est expire → afficher "Expired" + bouton "Renew" (meme flow que Borrow)
 
 ---
 
-### B6. Landing page — Section docs
+### ~~B6. Landing page — Section docs~~ ✅ DONE
 
 **Fichier :** `src/app/page.tsx`
 
@@ -251,13 +251,13 @@ XLS-80 (PermissionedDomains) → Controle d'acces au vault
 
 ---
 
-## Fallback — Si Crossmark ne marche pas sur wasm devnet
+## Fallback — Si Otsu ne marche pas sur wasm devnet
 
-Si B1 echoue (Crossmark ne signe pas sur network ID 2002), passer en **mode serveur sign** :
+Si B1 echoue (Otsu ne signe pas sur network ID 2002), passer en **mode serveur sign** :
 
 **Frontend (Dev B) :**
 - Meme UI : duree → prix → bouton "Pay X XRP" → ecran "Confirm Payment"
-- Au lieu de `signAndSubmit` Crossmark, appeler une route backend
+- Au lieu de `signAndSubmit` Otsu, appeler une route backend
 
 **Backend (Dev A) :**
 - Creer `POST /api/xrpl/pay-provider` :
@@ -275,9 +275,9 @@ Si B1 echoue (Crossmark ne signe pas sur network ID 2002), passer en **mode serv
 |-------|:---:|:---:|
 | Vault name on-chain | A1 | B2 (affichage) |
 | Prix par jour | A2 | B3 (champ form) |
-| Paiement borrower | A3 (verification) | B4 (flow UI + Crossmark) |
+| Paiement borrower | A3 (verification) | B4 (flow UI + Otsu) |
 | Extension duree | A4 (verification) | B5 (UI expiration + modal) |
 | Demo route update | A5 | — |
-| Test Crossmark | — | B1 (prerequis) |
+| Test Otsu | — | B1 (prerequis) |
 | Section docs landing | — | B6 |
 | Fallback sign serveur | A (si B1 echoue) | B (UI adapt) |

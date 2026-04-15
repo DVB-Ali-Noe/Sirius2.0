@@ -8,6 +8,234 @@ import Lenis from "lenis";
 
 gsap.registerPlugin(ScrollTrigger);
 
+const flowSteps = [
+  {
+    number: "01",
+    title: "Upload",
+    description:
+      "The provider uploads a dataset. Sirius encrypts it with AES-256-GCM, generates a Merkle tree, and pins it to IPFS.",
+  },
+  {
+    number: "02",
+    title: "Certify",
+    description:
+      "Boundless generates a ZK proof (RISC Zero) certifying dataset quality: entry count, duplicate rate, valid schema.",
+  },
+  {
+    number: "03",
+    title: "Tokenize",
+    description:
+      "A Multi-Purpose Token (XLS-33) is minted on XRPL with metadata: IPFS hash, ZK proof reference, quality score.",
+  },
+  {
+    number: "04",
+    title: "Vault",
+    description:
+      "The MPT is deposited into a Vault (XLS-65) — an on-chain lending pool. The provider sets a daily price in XRP.",
+  },
+  {
+    number: "05",
+    title: "Borrow",
+    description:
+      "A borrower browses the marketplace, picks a dataset, and pays in XRP for a chosen duration. Payment goes directly to the provider.",
+  },
+  {
+    number: "06",
+    title: "Access",
+    description:
+      "Sirius activates a temporary decryption key. The borrower receives a unique, watermarked copy — traceable if leaked.",
+  },
+  {
+    number: "07",
+    title: "Expire",
+    description:
+      "On expiration, the key is revoked automatically. The borrower can extend access by paying again. Data stays in the vault.",
+  },
+];
+
+const xrplPrimitives = [
+  { tag: "XLS-33", name: "MPT", description: "Tokenizes the dataset" },
+  { tag: "XLS-65", name: "Vault", description: "Pools provider MPTs" },
+  { tag: "XLS-66", name: "Lending", description: "On-chain loan management" },
+  { tag: "XLS-70", name: "Credentials", description: "Provider & borrower certification" },
+  { tag: "XLS-80", name: "Permissioned Domains", description: "Vault access control" },
+  { tag: "Boundless", name: "ZK Proofs", description: "RISC Zero zkVM + on-chain Smart Escrow verification" },
+];
+
+function FlowPath({ containerRef }: { containerRef: React.RefObject<HTMLDivElement | null> }) {
+  const pathRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (!pathRef.current || !containerRef.current) return;
+    const lines = pathRef.current.querySelectorAll(".flow-line");
+    lines.forEach((line) => {
+      const path = line as SVGPathElement;
+      const length = path.getTotalLength();
+      gsap.set(path, { strokeDasharray: length, strokeDashoffset: length });
+      gsap.to(path, {
+        strokeDashoffset: 0,
+        ease: "none",
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top 100%",
+          end: "bottom bottom",
+          scrub: 0.6,
+        },
+      });
+    });
+  }, [containerRef]);
+
+  const w = 1200;
+  const h = 6000;
+  const amp = 320;
+  const cx = w / 2;
+
+  // Seed-based pseudo-random for deterministic jitter
+  const seededRandom = (seed: number) => {
+    const x = Math.sin(seed * 9301 + 4927) * 49297;
+    return x - Math.floor(x);
+  };
+
+  const buildSinePath = (offset: number, jitterAmt: number) => {
+    const points: string[] = [];
+    const steps = 200;
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const y = t * h;
+      const jitter = (seededRandom(i * 31 + offset * 7) - 0.5) * jitterAmt;
+      const x = cx + Math.sin(t * Math.PI * 7) * amp + offset + jitter;
+      points.push(i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`);
+    }
+    return points.join(" ");
+  };
+
+  const lines = [
+    { offset: -24, opacity: 0.12, width: 1.5, jitter: 6 },
+    { offset: -12, opacity: 0.18, width: 2, jitter: 4 },
+    { offset: 0, opacity: 0.25, width: 2.5, jitter: 3 },
+    { offset: 12, opacity: 0.18, width: 2, jitter: 5 },
+    { offset: 24, opacity: 0.12, width: 1.5, jitter: 7 },
+  ];
+
+  return (
+    <div className="pointer-events-none absolute inset-0" style={{
+      maskImage: "linear-gradient(to bottom, transparent 0%, white 20%, white 55%, transparent 70%)",
+      WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, white 20%, white 55%, transparent 70%)",
+    }}>
+      <svg
+        ref={pathRef}
+        viewBox={`0 0 ${w} ${h}`}
+        className="h-full w-full"
+        preserveAspectRatio="none"
+        fill="none"
+      >
+        {lines.map((l, i) => (
+          <path
+            key={i}
+            className="flow-line"
+            d={buildSinePath(l.offset, l.jitter)}
+            stroke={`rgba(255,255,255,${l.opacity})`}
+            strokeWidth={l.width}
+            strokeLinecap="round"
+          />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+function FlowSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    cardsRef.current.forEach((card, i) => {
+      if (!card) return;
+      const fromX = i % 2 === 0 ? -80 : 80;
+      gsap.fromTo(
+        card,
+        { opacity: 0, x: fromX },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.8,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            end: "top 55%",
+            toggleActions: "play none none reverse",
+          },
+        }
+      );
+    });
+  }, []);
+
+  return (
+    <section ref={sectionRef} className="relative z-10 overflow-hidden px-6 py-24 md:px-12 md:py-32">
+      <h2 className="mb-4 text-center font-display text-4xl tracking-wider text-foreground md:text-5xl">
+        How it works
+      </h2>
+      <p className="mx-auto mb-20 max-w-lg text-center text-sm tracking-wide text-muted md:mb-28 md:text-base">
+        Seven steps from raw data to decentralized lending
+      </p>
+
+      <div className="relative mx-auto max-w-5xl">
+        <div className="relative flex flex-col gap-16 md:gap-24">
+          {flowSteps.map((step, i) => {
+            const isLeft = i % 2 === 0;
+            return (
+              <div
+                key={step.number}
+                ref={(el) => { cardsRef.current[i] = el; }}
+                className={`flex ${isLeft ? "md:justify-start" : "md:justify-end"} justify-center`}
+              >
+                <div className="group relative w-full max-w-md rounded-2xl border border-border bg-surface/60 p-6 backdrop-blur-md transition-colors hover:border-muted-foreground/40 md:p-8">
+                  <div className="mb-3 flex items-center gap-4">
+                    <span className="font-display text-3xl tracking-wider text-muted md:text-4xl">
+                      {step.number}
+                    </span>
+                    <span className="font-display text-xl tracking-wider text-foreground md:text-2xl">
+                      {step.title}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-muted md:text-base">
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* XRPL Primitives */}
+      <div className="mx-auto mt-32 max-w-4xl md:mt-40">
+        <h3 className="mb-12 text-center font-display text-3xl tracking-wider text-foreground md:text-4xl">
+          Built on XRPL
+        </h3>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+          {xrplPrimitives.map((p) => (
+            <div
+              key={p.tag}
+              className="rounded-xl border border-border bg-surface/40 p-5 backdrop-blur-sm transition-colors hover:border-muted-foreground/30"
+            >
+              <span className="mb-1 block text-xs font-medium tracking-widest text-muted">
+                {p.tag}
+              </span>
+              <span className="mb-2 block font-display text-lg tracking-wider text-foreground">
+                {p.name}
+              </span>
+              <p className="text-sm leading-relaxed text-muted">{p.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+    </section>
+  );
+}
+
 const marqueeItems = [
   "Sirius Protocol",
   "Decentralized Data Lending",
@@ -142,6 +370,43 @@ function AvatarCard({ name, image, imageStyle, x = "#", linkedin = "#", github =
   );
 }
 
+function PageBottom() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <div ref={containerRef} className="relative overflow-hidden">
+      <FlowPath containerRef={containerRef} />
+
+      <FlowSection />
+
+      <section className="relative z-10 min-h-screen px-8 py-16 md:px-16 md:py-24">
+        <div className="flex items-start justify-between">
+          <h2 className="text-4xl tracking-wider text-foreground md:text-5xl">
+            About us :
+          </h2>
+          <a href="https://devinciblockchain.com/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
+            <img src="/images/devinci-blockchain.png" alt="DeVinci Blockchain" className="h-12 w-auto md:h-14" />
+            <span className="text-left text-sm leading-tight tracking-wider text-foreground md:text-base">
+              DeVinci<br />Blockchain
+            </span>
+          </a>
+        </div>
+
+        <div className="mt-20 flex flex-col items-center justify-center gap-16 md:mt-28 md:flex-row md:gap-24 lg:gap-32">
+          <AvatarCard name="Ali BEN YEZZA" image="/images/image_ali.png" imageStyle="" x="https://x.com/AliBENYEZZ13187" linkedin="https://www.linkedin.com/in/ali-ben-yezza/" github="https://github.com/alibenyezza" />
+          <AvatarCard name="Noe WALES" image="/images/avatar-noe.png" imageStyle="object-[center_15%]" x="https://x.com/nooeeww" linkedin="https://www.linkedin.com/in/noé-w" github="https://github.com/CHAAIISE" />
+        </div>
+      </section>
+
+      <footer className="relative z-10 border-t border-border px-4 py-4 text-center">
+        <p className="text-[10px] tracking-widest text-muted-foreground">
+          Built on XRPL — Paris Blockchain Week Hackathon 2026
+        </p>
+      </footer>
+    </div>
+  );
+}
+
 export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
   const launchBtnRef = useRef<HTMLDivElement>(null);
@@ -250,24 +515,7 @@ export default function Home() {
         </div>
       </div>
 
-      <section className="relative z-10 min-h-screen px-8 py-16 md:px-16 md:py-24">
-        <div className="flex items-start justify-between">
-          <h2 className="text-4xl tracking-wider text-foreground md:text-5xl">
-            About us :
-          </h2>
-          <a href="https://devinciblockchain.com/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
-            <img src="/images/devinci-blockchain.png" alt="DeVinci Blockchain" className="h-12 w-auto md:h-14" />
-            <span className="text-left text-sm leading-tight tracking-wider text-foreground md:text-base">
-              DeVinci<br />Blockchain
-            </span>
-          </a>
-        </div>
-
-        <div className="mt-20 flex flex-col items-center justify-center gap-16 md:mt-28 md:flex-row md:gap-24 lg:gap-32">
-          <AvatarCard name="Ali BEN YEZZA" image="/images/image_ali.png" imageStyle="" x="https://x.com/AliBENYEZZ13187" linkedin="https://www.linkedin.com/in/ali-ben-yezza/" github="https://github.com/alibenyezza" />
-          <AvatarCard name="Noe WALES" image="/images/avatar-noe.png" imageStyle="object-[center_15%]" x="https://x.com/nooeeww" linkedin="https://www.linkedin.com/in/noé-w" github="https://github.com/CHAAIISE" />
-        </div>
-      </section>
+      <PageBottom />
     </div>
   );
 }

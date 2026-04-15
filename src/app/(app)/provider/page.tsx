@@ -21,13 +21,15 @@ interface FullUploadResult {
   merkleRoot?: string
   entryCount: number
   qualityScore?: number
+  pricePerDay?: string
   steps: Array<{ step: string; detail: string }>
 }
 
 function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: string; onSuccess: (result: FullUploadResult) => void; onError: (msg: string) => void }) {
   const [name, setName] = useState("")
-  const [category, setCategory] = useState("instruction-tuning")
-  const [schema, setSchema] = useState("openai-chat-v1")
+  const [category, setCategory] = useState("")
+  const [schema, setSchema] = useState("")
+  const [pricePerDay, setPricePerDay] = useState("0.5")
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [currentStep, setCurrentStep] = useState("")
@@ -42,6 +44,7 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
       setName("GPT-4 Instruction Tuning Dataset")
       setCategory("instruction-tuning")
       setSchema("openai-chat-v1")
+      setPricePerDay("0.5")
     } catch {
       onError("Failed to load demo dataset")
     }
@@ -70,6 +73,7 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
         description: { name, category, format: "jsonl", language: "en" },
         rows,
         schema,
+        pricePerDay,
       })
 
       setName("")
@@ -84,7 +88,7 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
     } finally {
       setLoading(false)
     }
-  }, [file, name, category, schema, providerAddress, qc, onSuccess, onError])
+  }, [file, name, category, schema, pricePerDay, providerAddress, qc, onSuccess, onError])
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-2xl border border-border bg-surface/50 p-6">
@@ -109,8 +113,10 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
+          required
           className="flex-1 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-foreground outline-none"
         >
+          <option value="" disabled>Category</option>
           <option value="instruction-tuning">Instruction Tuning</option>
           <option value="code">Code</option>
           <option value="medical">Medical</option>
@@ -124,6 +130,19 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
           onChange={(e) => setSchema(e.target.value)}
           className="flex-1 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-foreground placeholder-muted outline-none focus:border-white/30"
         />
+
+        <div className="relative flex-1">
+          <input
+            type="number"
+            step="0.1"
+            min="0.1"
+            placeholder="Price/day"
+            value={pricePerDay}
+            onChange={(e) => setPricePerDay(e.target.value)}
+            className="w-full rounded-full border border-white/10 bg-white/5 px-4 py-2.5 pr-14 text-sm text-foreground placeholder-muted outline-none focus:border-white/30"
+          />
+          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-muted">XRP/24h</span>
+        </div>
       </div>
 
       <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-white/10 bg-white/[0.02] px-4 py-8 text-sm text-muted transition-colors hover:border-white/20 hover:text-foreground">
@@ -144,7 +163,7 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
       <div className="flex gap-3">
         <button
           type="submit"
-          disabled={!name || !file || loading}
+          disabled={!name || !file || !category || loading}
           className="flex-1 rounded-full border border-white/80 bg-white/5 px-6 py-2.5 text-sm uppercase tracking-widest text-white backdrop-blur-sm transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer hover:bg-white/10"
         >
           {loading ? "Processing..." : "Upload & Certify"}
@@ -232,10 +251,11 @@ export default function ProviderPage() {
                 <Row label="IPFS CID" value={uploadResult.manifestCid} copy />
                 {uploadResult.merkleRoot && <Row label="Merkle Root" value={uploadResult.merkleRoot} copy />}
                 <Row label="Entries" value={String(uploadResult.entryCount)} />
+                <Row label="Price" value={`${uploadResult.pricePerDay ?? "0.5"} XRP /24h`} />
                 <Row label="Quality Score" value={`${uploadResult.qualityScore}/100`} />
               </div>
               <a
-                href={`${XRPL_EXPLORER_URL}/${uploadResult.mptIssuanceId}`}
+                href={`${XRPL_EXPLORER_URL}/mpt/${uploadResult.mptIssuanceId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-4 py-2 text-xs uppercase tracking-widest text-accent transition-colors hover:bg-accent/20 w-fit"
@@ -287,7 +307,7 @@ export default function ProviderPage() {
                 )}
                 <div className="flex items-center gap-3">
                   <span className="text-[10px] text-positive">ZK Verified</span>
-                  <a href={`${XRPL_EXPLORER_URL}/${d.mptIssuanceId}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-accent hover:underline">Explorer</a>
+                  <a href={`${XRPL_EXPLORER_URL}/mpt/${d.mptIssuanceId}`} target="_blank" rel="noopener noreferrer" className="text-[10px] text-accent hover:underline">Explorer</a>
                 </div>
               </div>
             ))}
