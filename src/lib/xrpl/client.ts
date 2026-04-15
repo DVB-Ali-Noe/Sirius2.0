@@ -18,17 +18,29 @@ export async function getClient(): Promise<Client> {
       client = null;
     }
 
-    const newClient = new Client(XRPL_WS_URL);
-    try {
-      await newClient.connect();
-      client = newClient;
-      return newClient;
-    } catch (error) {
-      client = null;
-      throw error;
-    } finally {
-      connecting = null;
+    const newClient = new Client(XRPL_WS_URL, {
+      connectionTimeout: 20000,
+      timeout: 30000,
+    });
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        console.log(`[xrpl] Connecting to ${XRPL_WS_URL} (attempt ${attempt}/3)...`);
+        await newClient.connect();
+        console.log("[xrpl] Connected");
+        client = newClient;
+        return newClient;
+      } catch (error) {
+        console.error(`[xrpl] Connection attempt ${attempt} failed:`, (error as Error).message);
+        if (attempt === 3) {
+          client = null;
+          throw error;
+        }
+        await new Promise((r) => setTimeout(r, 2000));
+      }
     }
+
+    throw new Error("Unreachable");
   })();
 
   return connecting;
