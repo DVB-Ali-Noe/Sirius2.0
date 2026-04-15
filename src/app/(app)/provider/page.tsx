@@ -66,11 +66,8 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
         rows = trimmed.split("\n").filter(Boolean).map((line) => JSON.parse(line))
       }
 
-      const cm = (window as unknown as {
-        crossmark?: {
-          signAndSubmitAndWait: (tx: Record<string, unknown>) => Promise<{ response: { data: { txHash: string; resp?: { result?: { meta?: { mpt_issuance_id?: string } } } } } }>
-        }
-      }).crossmark
+      const otsu = window.xrpl
+      if (!otsu?.isOtsu) throw new Error("Otsu Wallet not detected — install it and refresh")
 
       // Step 1 — Sirius: encrypt, IPFS, ZK proof + prepare unsigned mint tx
       setCurrentStep(`Encrypting & uploading ${rows.length} rows to IPFS...`)
@@ -91,10 +88,8 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
 
       // Step 2 — Sign MPT mint with wallet
       setCurrentStep("Sign MPT mint in your wallet...")
-      if (!cm) throw new Error("Wallet not connected — install Crossmark/Otsu")
-
-      const mintRes = await cm.signAndSubmitAndWait(prepared.transaction)
-      const txHash = mintRes?.response?.data?.txHash
+      const mintRes = await otsu.signAndSubmit(prepared.transaction)
+      const txHash = mintRes?.hash
       if (!txHash) throw new Error("MPT mint failed: no tx hash returned")
 
       // Step 2b — Get mpt_issuance_id from ledger via tx hash (retry up to 10s)
@@ -127,11 +122,11 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
 
       // Step 4 — Sign authorize tx with wallet
       setCurrentStep("Sign MPT authorization in your wallet...")
-      await cm.signAndSubmitAndWait(registered.transactions.mptAuthorize)
+      await otsu.signAndSubmit(registered.transactions.mptAuthorize)
 
       // Step 5 — Sign deposit tx with wallet
       setCurrentStep("Sign vault deposit in your wallet...")
-      await cm.signAndSubmitAndWait(registered.transactions.vaultDeposit)
+      await otsu.signAndSubmit(registered.transactions.vaultDeposit)
 
       // Step 6 — Finalize
       setCurrentStep("Finalizing...")
