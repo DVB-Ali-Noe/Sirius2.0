@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
       description?: DatasetDescription;
       rows?: unknown[];
       schema?: string;
+      pricePerDay?: string;
     };
 
     if (!body.providerAddress) return validationError("providerAddress");
@@ -22,10 +23,19 @@ export async function POST(request: NextRequest) {
     if (body.rows.length > 10000) return validationError("rows (max 10000)");
     if (!body.schema) return validationError("schema");
 
+    const pricePerDay = body.pricePerDay ?? body.description.pricePerDay ?? "0.5";
+    const priceNum = parseFloat(pricePerDay);
+    if (!Number.isFinite(priceNum) || priceNum <= 0) return validationError("pricePerDay");
+
+    const description: DatasetDescription = {
+      ...body.description,
+      pricePerDay,
+    };
+
     // Step 1 — Sirius: encrypt + IPFS + ZK proof
     const ingestion = await ingestDataset({
       providerAddress: body.providerAddress,
-      description: body.description,
+      description,
       rows: body.rows,
       schema: body.schema,
     });
@@ -45,7 +55,7 @@ export async function POST(request: NextRequest) {
     qualityScore = Math.min(qualityScore, 100);
 
     const metadata: DatasetMetadata = {
-      dataset: body.description,
+      dataset: description,
       ipfsHash: ingestion.manifestCid,
       zkProofRef: ingestion.boundlessProof.verifierUri,
       schemaHash: ingestion.boundlessProof.assertions.schemaHash,
@@ -67,6 +77,7 @@ export async function POST(request: NextRequest) {
       merkleRoot: ingestion.merkleRoot,
       entryCount: ingestion.entryCount,
       qualityScore,
+      pricePerDay,
       proof: {
         proofId: ingestion.boundlessProof.proofId,
         duplicateRate: ingestion.boundlessProof.assertions.duplicateRate,

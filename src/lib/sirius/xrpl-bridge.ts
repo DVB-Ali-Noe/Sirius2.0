@@ -26,7 +26,8 @@ export function listActiveSeeds(): WatermarkSeed[] {
 
 export function activateLoanAccess(
   loanId: string,
-  config: BridgeConfig = DEFAULT_CONFIG
+  config: BridgeConfig = DEFAULT_CONFIG,
+  ttlOverrideMs?: number
 ): { ok: true; keyId: string } | { ok: false; reason: string } {
   const loan = getLoan(loanId);
   if (!loan) return { ok: false, reason: "loan not found" };
@@ -38,10 +39,13 @@ export function activateLoanAccess(
   }
 
   const masterKey = decodeKey(dataset.masterKeyEncoded);
-  const ttlMs = Math.max(
-    60_000,
-    loan.paymentInterval * loan.paymentTotal * 1000 || config.defaultTtlMs
-  );
+  const ttlMs =
+    ttlOverrideMs !== undefined && ttlOverrideMs > 0
+      ? ttlOverrideMs
+      : Math.max(
+          60_000,
+          loan.paymentInterval * loan.paymentTotal * 1000 || config.defaultTtlMs
+        );
 
   const record = issueBorrowerKey({
     borrower: loan.borrower,

@@ -30,6 +30,7 @@ export interface DatasetRecord {
   createdAt: number;
   mptIssuanceId?: string;
   vaultId?: string;
+  pricePerDay?: string;
 }
 
 const g = globalThis as unknown as { __sirius_datasets?: Map<string, DatasetRecord>; __sirius_byMpt?: Map<string, string> };

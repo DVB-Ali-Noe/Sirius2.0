@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 import { useRouteGuard } from "@/hooks/use-route-guard"
 import { useDatasets } from "@/hooks/use-datasets"
-import { useCreateLoan } from "@/hooks/use-loans"
 import { useWalletStore } from "@/stores/wallet"
 import { DatasetCard } from "@/components/dataset/DatasetCard"
 import { DatasetDetail } from "@/components/dataset/DatasetDetail"
@@ -14,9 +13,12 @@ import { LoadingSpinner } from "@/components/common/LoadingSpinner"
 import { EmptyState } from "@/components/common/EmptyState"
 import { Toast } from "@/components/common/Toast"
 import { apiPost, apiGet } from "@/lib/api-client"
+import { signAndSubmitPayment, isOtsuInstalled } from "@/lib/wallet/otsu"
 
 interface OnChainPool {
   vaultId: string
+  vaultName: string | null
+  pricePerDay: string | null
   mptIssuanceId: string
   loanBrokerId: string | null
   dataset: {
@@ -27,8 +29,10 @@ interface OnChainPool {
     qualityScore: number
     zkProof: string
     schema: string
+    pricePerDay: string | null
   } | null
   issuer: string
+  ledgerSeq: number
 }
 
 function useOnChainPools() {
@@ -41,7 +45,7 @@ function useOnChainPools() {
 import { TxLink } from "@/components/common/TxLink"
 import type { Dataset } from "@/hooks/use-datasets"
 
-type FlowStep = "idle" | "creating-loan" | "activating-key" | "done"
+type FlowStep = "idle" | "awaiting-signature" | "verifying-payment" | "activating-key" | "done"
 
 function LoanRequestModal({ dataset, open, onClose, onComplete }: {
   dataset: Dataset | null
@@ -51,34 +55,63 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
 }) {
   const [duration, setDuration] = useState("30")
   const { address } = useWalletStore()
-  const createLoan = useCreateLoan()
   const [step, setStep] = useState<FlowStep>("idle")
   const [txHash, setTxHash] = useState<string | null>(null)
   const [toast, setToast] = useState<{ msg: string; variant: "success" | "error" } | null>(null)
 
   if (!dataset) return null
 
+  const pricePerDay = parseFloat(
+    (dataset as unknown as { pricePerDay?: string; description?: { pricePerDay?: string } })
+      .description?.pricePerDay
+    ?? (dataset as unknown as { pricePerDay?: string }).pricePerDay
+    ?? "0.5"
+  )
+  const totalXrp = pricePerDay * parseFloat(duration || "0")
+  const totalDrops = Math.round(totalXrp * 1_000_000).toString()
+
   const handleRequest = async () => {
-    if (!dataset.mptIssuanceId || !dataset.vaultId) return
+    if (!dataset.mptIssuanceId) return
+    if (!address) {
+      setToast({ msg: "Connect Otsu wallet first", variant: "error" })
+      return
+    }
+    if (!isOtsuInstalled()) {
+      setToast({ msg: "Otsu Wallet extension not detected", variant: "error" })
+      return
+    }
+    if (!dataset.providerAddress) {
+      setToast({ msg: "Dataset has no provider address", variant: "error" })
+      return
+    }
+    if (totalXrp <= 0) {
+      setToast({ msg: "Invalid duration or price", variant: "error" })
+      return
+    }
 
     try {
-      setStep("creating-loan")
-      const result = await createLoan.mutateAsync({
-        vaultId: dataset.vaultId,
-        mptIssuanceId: dataset.mptIssuanceId,
-        loanBrokerId: dataset.loanBrokerId,
-        borrowerAddress: address ?? "",
-        principalAmount: "1",
-        interestRate: 500,
-      }) as { loanId: string }
-
-      setTxHash(result.loanId)
-
-      setStep("activating-key")
-      await apiPost("/api/sirius/activate", {
-        action: "activate",
-        loanId: result.loanId,
+      setStep("awaiting-signature")
+      const { hash } = await signAndSubmitPayment({
+        from: address,
+        to: dataset.providerAddress,
+        amountDrops: totalDrops,
+        memo: `sirius-loan:${dataset.datasetId}`,
       })
+      setTxHash(hash)
+
+      setStep("verifying-payment")
+      const verify = await apiPost<{ success: boolean; loanId?: string; reason?: string }>(
+        "/api/xrpl/verify-payment",
+        {
+          txHash: hash,
+          datasetId: dataset.datasetId,
+          borrowerAddress: address,
+          durationDays: parseInt(duration, 10),
+        }
+      )
+      if (!verify.success) {
+        throw new Error(verify.reason ?? "Payment verification failed")
+      }
 
       setStep("done")
       setTimeout(() => {
@@ -94,8 +127,9 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
   }
 
   const stepLabels: Record<FlowStep, string> = {
-    "idle": "Request Access",
-    "creating-loan": "Creating loan on XRPL...",
+    "idle": "Confirm & Pay with Otsu",
+    "awaiting-signature": "Check Otsu wallet for signature...",
+    "verifying-payment": "Verifying payment on XRPL...",
     "activating-key": "Activating decryption key...",
     "done": "Access granted!",
   }
@@ -131,9 +165,10 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
           </div>
 
           <div className="flex items-center justify-between rounded-lg border border-accent/20 bg-accent/5 px-4 py-3">
-            <span className="text-sm text-muted">Estimated Cost</span>
+            <span className="text-sm text-muted">Total Cost</span>
             <span className="text-sm text-accent font-medium">
-              {(parseFloat(duration || "0") / 365 * 500 / 100).toFixed(2)} XRP
+              {totalXrp.toFixed(2)} XRP
+              <span className="ml-2 text-xs text-muted">({pricePerDay} XRP/day)</span>
             </span>
           </div>
 
@@ -184,6 +219,7 @@ function PoolCard({ vaultId, vaultName, datasets, onSelect }: {
   const avgScore = datasets.reduce((s, d) => s + (d.boundlessProof?.assertions?.qualityScore ?? 0), 0) / datasets.length
   const totalRows = datasets.reduce((s, d) => s + d.entryCount, 0)
   const categories = [...new Set(datasets.map((d) => d.description.category))]
+  const poolName = datasets[0]?.description?.name ?? "On-chain Dataset"
 
   return (
     <button
@@ -193,11 +229,8 @@ function PoolCard({ vaultId, vaultName, datasets, onSelect }: {
       <div className="flex items-start justify-between">
         <div className="flex flex-col gap-1">
           <span className="text-xs text-muted">Lending Pool</span>
-          {vaultName ? (
-            <span className="text-sm font-medium text-foreground">{vaultName}</span>
-          ) : (
-            <span className="text-sm font-mono text-foreground">{vaultId.slice(0, 10)}...{vaultId.slice(-6)}</span>
-          )}
+          <span className="text-sm font-semibold text-foreground truncate max-w-[220px]">{vaultName ?? poolName}</span>
+          <span className="text-[10px] font-mono text-muted">{vaultId.slice(0, 8)}...{vaultId.slice(-4)}</span>
         </div>
         <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-muted transition-colors group-hover:border-accent/40 group-hover:text-accent">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -250,7 +283,11 @@ export default function MarketplacePage() {
   const vaultGroups = new Map<string, { name: string | null; datasets: Dataset[] }>()
   const onChainPools = poolsData?.pools ?? []
 
-  for (const pool of onChainPools.filter((p) => p.loanBrokerId && p.dataset?.name && p.dataset.name.length > 3)) {
+  for (const pool of onChainPools.filter((p) => {
+    if (!p.loanBrokerId) return false
+    const displayName = p.vaultName ?? p.dataset?.name ?? ""
+    return displayName.length > 3
+  })) {
     // Try to find matching dataset from Sirius registry
     const siriusDataset = datasets?.find((d) => d.mptIssuanceId === pool.mptIssuanceId)
 
@@ -258,7 +295,7 @@ export default function MarketplacePage() {
       datasetId: pool.mptIssuanceId,
       providerAddress: pool.issuer,
       description: {
-        name: pool.dataset?.name ?? "On-chain Dataset",
+        name: pool.vaultName ?? pool.dataset?.name ?? "On-chain Dataset",
         category: pool.dataset?.category ?? "defi",
         format: "jsonl",
         language: "en",

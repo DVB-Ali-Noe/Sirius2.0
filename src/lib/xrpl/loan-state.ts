@@ -13,14 +13,18 @@ export interface LoanRecord {
   loanBroker: string;
   vaultId: string;
   mptIssuanceId: string;
+  datasetId?: string;
   status: LoanStatus;
   principalAmount: string;
   interestRate: number;
   paymentTotal: number;
   paymentInterval: number;
   gracePeriod: number;
+  pricePerDay?: string;
+  durationDays?: number;
   createdAt: number;
   activatedAt?: number;
+  expiresAt?: number;
   completedAt?: number;
   distributedAt?: number;
   payments: PaymentRecord[];
@@ -133,4 +137,15 @@ export function clearAllLoans(): number {
   const count = loans.size;
   loans.clear();
   return count;
+}
+
+export function extendLoanExpiry(loanId: string, additionalMs: number): LoanRecord {
+  const loan = loans.get(loanId);
+  if (!loan) throw new Error(`Loan ${loanId} not found`);
+  if (loan.status !== "ACTIVE" && loan.status !== "REPAYING") {
+    throw new Error(`Cannot extend loan in status ${loan.status}`);
+  }
+  const base = loan.expiresAt && loan.expiresAt > Date.now() ? loan.expiresAt : Date.now();
+  loan.expiresAt = base + additionalMs;
+  return loan;
 }

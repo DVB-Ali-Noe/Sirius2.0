@@ -49,6 +49,7 @@ export {
   getAllLoans,
   removeLoan,
   clearAllLoans,
+  extendLoanExpiry,
   type LoanStatus,
   type LoanRecord,
 } from "./loan-state";

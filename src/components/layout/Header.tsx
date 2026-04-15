@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link"
-import { WalletConnector } from "@/components/wallet/wallet-connector"
 import { ConnectButton } from "@/components/wallet/connect-button"
 
 export function TopBar({ onMenuClick, onMenuHover }: { onMenuClick: () => void; onMenuHover?: () => void }) {
@@ -26,7 +25,6 @@ export function TopBar({ onMenuClick, onMenuHover }: { onMenuClick: () => void; 
 
       <div className="shrink-0 flex items-center gap-3">
         <ConnectButton />
-        <WalletConnector />
       </div>
     </header>
   )

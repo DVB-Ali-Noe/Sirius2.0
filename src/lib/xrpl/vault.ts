@@ -67,11 +67,27 @@ export async function depositToVault(
   }
 }
 
+export interface LendingPoolMetadata {
+  name: string;
+  pricePerDay?: string;
+}
+
+function encodeVaultMetadata(input: string | LendingPoolMetadata): string {
+  if (typeof input === "string") {
+    return Buffer.from(input).toString("hex");
+  }
+  const payload = {
+    name: (input.name || "").slice(0, 80),
+    pricePerDay: input.pricePerDay ?? "0.5",
+  };
+  return Buffer.from(JSON.stringify(payload)).toString("hex");
+}
+
 export async function createLendingPool(
   loanBroker: Wallet,
   mptIssuanceId: string,
   domainId?: string,
-  metadata?: string
+  metadata?: string | LendingPoolMetadata
 ): Promise<string> {
   const client = await getClient();
 
@@ -81,7 +97,7 @@ export async function createLendingPool(
     Asset: { mpt_issuance_id: mptIssuanceId },
     Flags: VaultCreateFlags.tfVaultPrivate,
     ...(domainId && { DomainID: domainId }),
-    ...(metadata && { Data: Buffer.from(metadata).toString("hex") }),
+    ...(metadata && { Data: encodeVaultMetadata(metadata) }),
   };
 
   const result = await client.submitAndWait(tx, { wallet: loanBroker });

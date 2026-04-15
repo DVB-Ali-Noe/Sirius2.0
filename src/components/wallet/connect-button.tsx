@@ -3,56 +3,40 @@
 import { useState, useRef, useEffect } from "react";
 import { useWalletStore } from "@/stores/wallet";
 import { truncateAddress } from "@/lib/utils";
-import { getWalletManager } from "@/lib/wallet/manager";
-
-type WalletOption = "crossmark" | "gemwallet" | "xaman";
-
-const WALLET_OPTIONS: { id: WalletOption; name: string }[] = [
-  { id: "crossmark", name: "Crossmark / Otsu" },
-  { id: "gemwallet", name: "GemWallet" },
-  { id: "xaman", name: "Xaman" },
-];
+import { connectOtsu, disconnectOtsu, isOtsuInstalled } from "@/lib/wallet/otsu";
 
 export function ConnectButton() {
-  const { connected, address, connecting, setConnecting } = useWalletStore();
+  const { connected, address, connecting, setConnected, setDisconnected, setConnecting } = useWalletStore();
   const [open, setOpen] = useState(false);
-  const [showWalletPicker, setShowWalletPicker] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
-      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) setShowWalletPicker(false);
     }
 
-    if (open || showWalletPicker) {
+    if (open) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open, showWalletPicker]);
+  }, [open]);
 
-  const { setConnected } = useWalletStore();
-
-  const handleWalletSelect = async (wallet: WalletOption) => {
-    setShowWalletPicker(false);
-    setConnecting(true);
+  const handleConnect = async () => {
+    setError(null);
+    if (!isOtsuInstalled()) {
+      setError("Otsu Wallet extension not detected. Install it and refresh.");
+      return;
+    }
     try {
-      if (wallet === "crossmark") {
-        const w = (window as unknown as { xrpl?: { disconnect: () => Promise<void>; connect: () => Promise<{ address: string }> } }).xrpl;
-        if (!w) throw new Error("Otsu not detected");
-        try { await w.disconnect(); } catch {}
-        const res = await w.connect();
-        const addr = res?.address;
-        if (!addr) throw new Error("No address returned");
-        setConnected(addr, "wasm-devnet");
-      } else {
-        const manager = getWalletManager();
-        await manager.connect(wallet);
-      }
-    } catch {
+      setConnecting(true);
+      const { address: addr, network } = await connectOtsu();
+      setConnected(addr, network);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to connect";
+      setError(msg);
       setConnecting(false);
     }
   };
@@ -70,24 +54,11 @@ export function ConnectButton() {
 
   if (!connected || !address) {
     return (
-      <div ref={pickerRef} className="relative">
-        <button onClick={() => setShowWalletPicker(!showWalletPicker)} className={`${baseStyle} uppercase tracking-widest`}>
-          Connect
+      <div className="flex flex-col items-end gap-1">
+        <button onClick={handleConnect} className={`${baseStyle} uppercase tracking-widest`}>
+          Connect Otsu
         </button>
-        {showWalletPicker && (
-          <div className="absolute right-0 top-full mt-2 min-w-[220px] overflow-hidden rounded-xl border border-border bg-surface shadow-lg z-50">
-            <div className="px-4 py-3 text-xs text-muted uppercase tracking-wider border-b border-border">Connect Wallet</div>
-            {WALLET_OPTIONS.map((w) => (
-              <button
-                key={w.id}
-                onClick={() => handleWalletSelect(w.id)}
-                className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left text-sm text-foreground transition-colors hover:bg-white/5"
-              >
-                {w.name}
-              </button>
-            ))}
-          </div>
-        )}
+        {error && <span className="text-xs text-negative max-w-xs text-right">{error}</span>}
       </div>
     );
   }
@@ -120,8 +91,8 @@ export function ConnectButton() {
           <div className="border-t border-border" />
           <button
             onClick={() => {
-              useWalletStore.getState().setDisconnected();
-              getWalletManager().disconnect().catch(() => {});
+              setDisconnected();
+              disconnectOtsu();
               setOpen(false);
             }}
             className="flex w-full cursor-pointer items-center gap-2 px-4 py-3 text-left text-sm text-negative transition-colors hover:bg-white/5"
