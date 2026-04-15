@@ -33,17 +33,25 @@ export interface DatasetRecord {
   pricePerDay?: string;
 }
 
+import { loadStore, saveStore } from "@/lib/persistence";
+
 const g = globalThis as unknown as { __sirius_datasets?: Map<string, DatasetRecord>; __sirius_byMpt?: Map<string, string> };
-const datasets: Map<string, DatasetRecord> = g.__sirius_datasets ?? new Map<string, DatasetRecord>();
-const byMpt: Map<string, string> = g.__sirius_byMpt ?? new Map<string, string>();
+const datasets: Map<string, DatasetRecord> = g.__sirius_datasets ?? loadStore<DatasetRecord>("datasets");
+const byMpt: Map<string, string> = g.__sirius_byMpt ?? loadStore<string>("datasets-byMpt");
 g.__sirius_datasets = datasets;
 g.__sirius_byMpt = byMpt;
+
+function persist() {
+  saveStore("datasets", datasets);
+  saveStore("datasets-byMpt", byMpt);
+}
 
 export function registerDataset(record: DatasetRecord): DatasetRecord {
   datasets.set(record.datasetId, record);
   if (record.mptIssuanceId) {
     byMpt.set(record.mptIssuanceId, record.datasetId);
   }
+  persist();
   return record;
 }
 
@@ -52,6 +60,7 @@ export function attachMpt(datasetId: string, mptIssuanceId: string): DatasetReco
   if (!r) throw new Error(`Dataset ${datasetId} not found`);
   r.mptIssuanceId = mptIssuanceId;
   byMpt.set(mptIssuanceId, datasetId);
+  persist();
   return r;
 }
 
@@ -59,6 +68,7 @@ export function attachVault(datasetId: string, vaultId: string): DatasetRecord {
   const r = datasets.get(datasetId);
   if (!r) throw new Error(`Dataset ${datasetId} not found`);
   r.vaultId = vaultId;
+  persist();
   return r;
 }
 
@@ -80,6 +90,7 @@ export function unregisterDataset(datasetId: string): boolean {
   if (!record) return false;
   if (record.mptIssuanceId) byMpt.delete(record.mptIssuanceId);
   datasets.delete(datasetId);
+  persist();
   return true;
 }
 
@@ -87,5 +98,6 @@ export function clearAllDatasets(): number {
   const count = datasets.size;
   datasets.clear();
   byMpt.clear();
+  persist();
   return count;
 }

@@ -36,9 +36,13 @@ export interface PaymentRecord {
   timestamp: number;
 }
 
+import { loadStore, saveStore } from "@/lib/persistence";
+
 const globalStore = globalThis as unknown as { __sirius_loans?: Map<string, LoanRecord> };
-const loans: Map<string, LoanRecord> = globalStore.__sirius_loans ?? new Map<string, LoanRecord>();
+const loans: Map<string, LoanRecord> = globalStore.__sirius_loans ?? loadStore<LoanRecord>("loans");
 globalStore.__sirius_loans = loans;
+
+function persist() { saveStore("loans", loans); }
 
 const VALID_TRANSITIONS: Record<LoanStatus, LoanStatus[]> = {
   PENDING: ["ACTIVE"],
@@ -57,6 +61,7 @@ export function createLoanRecord(record: Omit<LoanRecord, "status" | "payments" 
     createdAt: Date.now(),
   };
   loans.set(record.loanId, loan);
+  persist();
   return loan;
 }
 
@@ -74,6 +79,7 @@ export function transitionLoan(loanId: string, newStatus: LoanStatus): LoanRecor
   if (newStatus === "ACTIVE") loan.activatedAt = Date.now();
   if (newStatus === "COMPLETED" || newStatus === "DEFAULTED") loan.completedAt = Date.now();
 
+  persist();
   return loan;
 }
 
@@ -97,6 +103,7 @@ export function addPayment(loanId: string, payment: PaymentRecord): LoanRecord {
     transitionLoan(loanId, "COMPLETED");
   }
 
+  persist();
   return loan;
 }
 
@@ -130,12 +137,15 @@ export function getAllLoans(): LoanRecord[] {
 }
 
 export function removeLoan(loanId: string): boolean {
-  return loans.delete(loanId);
+  const r = loans.delete(loanId);
+  persist();
+  return r;
 }
 
 export function clearAllLoans(): number {
   const count = loans.size;
   loans.clear();
+  persist();
   return count;
 }
 
@@ -148,5 +158,6 @@ export function extendLoanExpiry(loanId: string, additionalMs: number): LoanReco
   if (loan.status === "COMPLETED") loan.status = "ACTIVE";
   const base = loan.expiresAt && loan.expiresAt > Date.now() ? loan.expiresAt : Date.now();
   loan.expiresAt = base + additionalMs;
+  persist();
   return loan;
 }

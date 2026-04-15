@@ -94,14 +94,13 @@ function RepayModal({ loan, open, onClose }: { loan: LoanRecord | null; open: bo
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState<{ msg: string; variant: "success" | "error" } | null>(null)
   const qc = useQueryClient()
+  const { address } = useWalletStore()
 
   if (!loan) return null
 
   const pricePerDay = parseFloat(loan.pricePerDay ?? loan.principalAmount ?? "0.5")
   const daysNum = parseInt(days || "0", 10)
   const totalXrp = pricePerDay * daysNum
-
-  const { address } = useWalletStore()
 
   const handleExtend = async () => {
     if (daysNum <= 0 || !address) return

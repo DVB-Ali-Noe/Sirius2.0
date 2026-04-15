@@ -107,7 +107,7 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
           txHash: hash,
           datasetId: dataset.datasetId,
           borrowerAddress: address,
-          durationDays: parseInt(duration, 10),
+          durationDays: parseFloat(duration),
         }
       )
       if (!verify.success) {
@@ -158,8 +158,9 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
               type="number"
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
-              min="1"
+              min="0.01"
               max="365"
+              step="0.01"
               disabled={step !== "idle"}
               className="rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-foreground outline-none focus:border-white/30 disabled:opacity-50"
             />

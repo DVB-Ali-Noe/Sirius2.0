@@ -14,11 +14,18 @@ export interface BorrowerKey {
   revokedReason?: string;
 }
 
+import { loadStore, saveStore } from "@/lib/persistence";
+
 const g = globalThis as unknown as { __sirius_keys?: Map<string, BorrowerKey>; __sirius_keys_byLoanId?: Map<string, string> };
-const keys: Map<string, BorrowerKey> = g.__sirius_keys ?? new Map<string, BorrowerKey>();
-const byLoanId: Map<string, string> = g.__sirius_keys_byLoanId ?? new Map<string, string>();
+const keys: Map<string, BorrowerKey> = g.__sirius_keys ?? loadStore<BorrowerKey>("keys");
+const byLoanId: Map<string, string> = g.__sirius_keys_byLoanId ?? loadStore<string>("keys-byLoanId");
 g.__sirius_keys = keys;
 g.__sirius_keys_byLoanId = byLoanId;
+
+function persist() {
+  saveStore("keys", keys);
+  saveStore("keys-byLoanId", byLoanId);
+}
 
 export interface IssueParams {
   borrower: string;
@@ -52,6 +59,7 @@ export function issueBorrowerKey(params: IssueParams): BorrowerKey {
 
   keys.set(keyId, record);
   byLoanId.set(params.loanId, keyId);
+  persist();
   return record;
 }
 
@@ -76,6 +84,7 @@ export function revokeByLoan(loanId: string, reason: string): BorrowerKey | null
   record.revoked = true;
   record.revokedAt = Date.now();
   record.revokedReason = reason;
+  persist();
   return record;
 }
 
@@ -120,6 +129,7 @@ export function removeByLoan(loanId: string): boolean {
   if (!keyId) return false;
   keys.delete(keyId);
   byLoanId.delete(loanId);
+  persist();
   return true;
 }
 
@@ -127,6 +137,7 @@ export function clearAllKeys(): number {
   const count = keys.size;
   keys.clear();
   byLoanId.clear();
+  persist();
   return count;
 }
 

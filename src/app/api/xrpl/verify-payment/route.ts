@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getClient } from "@/lib/xrpl/client";
 import { getLoanBroker } from "@/lib/xrpl/wallets";
 import { createLoanRecord, transitionLoan, getLoan, addPayment } from "@/lib/xrpl/loan-state";
-import { getDataset } from "@/lib/sirius/dataset-registry";
+import { getDataset, listDatasets, getByMpt } from "@/lib/sirius/dataset-registry";
 import { activateLoanAccess, getWatermarkSeed } from "@/lib/sirius/xrpl-bridge";
 import { requireAuth, apiError, validationError } from "@/lib/api-utils";
 
@@ -32,12 +32,16 @@ export async function POST(request: NextRequest) {
     if (!body.txHash) return validationError("txHash");
     if (!body.datasetId) return validationError("datasetId");
     if (!body.borrowerAddress) return validationError("borrowerAddress");
-    if (!body.durationDays || body.durationDays <= 0) return validationError("durationDays");
+    if (!body.durationDays || body.durationDays <= 0) return validationError("durationDays (must be > 0)");
 
-    const dataset = getDataset(body.datasetId);
+    let dataset = getDataset(body.datasetId) ?? getByMpt(body.datasetId);
+    if (!dataset) {
+      const allDatasets = listDatasets();
+      dataset = allDatasets.find((d) => d.datasetId === body.datasetId || d.mptIssuanceId === body.datasetId) ?? undefined;
+    }
     if (!dataset) {
       return NextResponse.json(
-        { success: false, reason: `dataset ${body.datasetId} not found` },
+        { success: false, reason: `dataset ${body.datasetId} not found — upload a dataset first` },
         { status: 404 }
       );
     }
@@ -62,49 +66,31 @@ export async function POST(request: NextRequest) {
     const client = await getClient();
 
     // Poll until tx is validated (up to 15s)
-    let result: {
-      TransactionType?: string;
-      Destination?: string;
-      Amount?: string | { value: string };
-      Account?: string;
-      validated?: boolean;
-      meta?: { TransactionResult?: string };
-      tx_json?: {
-        TransactionType?: string;
-        Destination?: string;
-        Amount?: string | { value: string };
-        Account?: string;
-      };
-    } | null = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let result: any = null;
 
     for (let attempt = 0; attempt < 15; attempt++) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const txRes = (await (client as any).request({
+      const txRes: any = await (client as any).request({
         command: "tx",
         transaction: body.txHash,
-      })) as { result: Record<string, unknown> };
+      });
 
-      const r = txRes.result as typeof result;
-      if (r?.validated === true) {
-        result = r;
+      if (txRes.result?.validated === true) {
+        result = txRes.result;
         break;
       }
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
-    if (!result || !result.validated) {
+    if (!result) {
       return NextResponse.json({ success: false, reason: "tx not validated after 15s" });
     }
-
-    // Debug: log full tx structure to find Amount field
-    console.log("[verify-payment] tx keys:", Object.keys(result));
-    console.log("[verify-payment] tx_json keys:", result.tx_json ? Object.keys(result.tx_json) : "no tx_json");
-    console.log("[verify-payment] full result:", JSON.stringify(result).slice(0, 500));
 
     const txJson = result.tx_json ?? result;
     const txType = txJson.TransactionType ?? result.TransactionType;
     const destination = txJson.Destination ?? result.Destination;
-    const amount = txJson.Amount ?? result.Amount ?? (result as Record<string, unknown>).DeliverMax ?? (txJson as Record<string, unknown>).DeliverMax;
+    const amount = txJson.Amount ?? result.Amount ?? result.DeliverMax ?? txJson.DeliverMax;
     const account = txJson.Account ?? result.Account;
     const txResult = result.meta?.TransactionResult;
 
