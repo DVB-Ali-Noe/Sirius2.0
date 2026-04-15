@@ -39,9 +39,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ credentials });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    if (msg.includes("Account not found") || msg.includes("actNotFound")) {
+    const errData = (error as { data?: { error_code?: number } })?.data;
+    if (msg.includes("Account not found") || msg.includes("actNotFound") || msg.includes("account_not_found") || errData?.error_code === 19) {
       return NextResponse.json({ credentials: [] });
     }
+    console.error("[credentials/check] Unhandled error:", msg);
     return apiError(error);
   }
 }
