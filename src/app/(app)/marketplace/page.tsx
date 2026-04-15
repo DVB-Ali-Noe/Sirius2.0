@@ -15,6 +15,7 @@ import { Toast } from "@/components/common/Toast"
 import { apiPost, apiGet } from "@/lib/api-client"
 import { signAndSubmitPayment, isOtsuInstalled } from "@/lib/wallet/otsu"
 import { useSearchStore } from "@/stores/search"
+import { addLocalLoan, type LoanRecord } from "@/hooks/use-loans"
 
 interface OnChainPool {
   vaultId: string
@@ -101,17 +102,45 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
       setTxHash(hash)
 
       setStep("verifying-payment")
-      const verify = await apiPost<{ success: boolean; loanId?: string; reason?: string }>(
+      const durationNum = parseFloat(duration)
+      const verify = await apiPost<{
+        success: boolean; loanId?: string; reason?: string
+        expiresAt?: number; amountPaid?: number; pricePerDay?: string
+      }>(
         "/api/xrpl/verify-payment",
         {
           txHash: hash,
           datasetId: dataset.datasetId,
           borrowerAddress: address,
-          durationDays: parseFloat(duration),
+          durationDays: durationNum,
         }
       )
       if (!verify.success) {
         throw new Error(verify.reason ?? "Payment verification failed")
+      }
+
+      if (verify.loanId) {
+        addLocalLoan({
+          loanId: verify.loanId,
+          borrower: address,
+          provider: dataset.providerAddress,
+          loanBroker: "",
+          vaultId: dataset.vaultId ?? "",
+          mptIssuanceId: dataset.mptIssuanceId ?? "",
+          datasetId: dataset.datasetId,
+          principalAmount: (totalXrp).toString(),
+          pricePerDay: verify.pricePerDay ?? pricePerDay.toString(),
+          interestRate: 0,
+          paymentTotal: 1,
+          durationDays: durationNum,
+          paymentInterval: durationNum * 86400,
+          gracePeriod: 86400,
+          status: "ACTIVE",
+          createdAt: Date.now(),
+          expiresAt: verify.expiresAt,
+          activatedAt: Date.now(),
+          payments: [{ amount: totalXrp.toString(), timestamp: Date.now(), txHash: hash }],
+        })
       }
 
       setStep("done")

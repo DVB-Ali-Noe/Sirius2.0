@@ -35,10 +35,44 @@ export interface RepaymentInfo {
   payments: Array<{ amount: string; paidAt: number; txHash?: string }>
 }
 
+const LOCAL_LOANS_KEY = "sirius-loans-cache"
+
+function getLocalLoans(): LoanRecord[] {
+  if (typeof window === "undefined") return []
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_LOANS_KEY) || "[]")
+  } catch { return [] }
+}
+
+function saveLocalLoans(loans: LoanRecord[]) {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(LOCAL_LOANS_KEY, JSON.stringify(loans))
+  } catch {}
+}
+
+export function addLocalLoan(loan: LoanRecord) {
+  const existing = getLocalLoans()
+  const updated = existing.filter((l) => l.loanId !== loan.loanId)
+  updated.push(loan)
+  saveLocalLoans(updated)
+}
+
 export function useLoans() {
   return useQuery({
     queryKey: ["loans"],
-    queryFn: () => apiGet<{ loans: LoanRecord[] }>("/api/xrpl/loan/status").then((r) => r.loans),
+    queryFn: async () => {
+      const serverLoans = await apiGet<{ loans: LoanRecord[] }>("/api/xrpl/loan/status").then((r) => r.loans)
+      const localLoans = getLocalLoans()
+      // Merge: server wins on duplicates, local fills gaps
+      const byId = new Map<string, LoanRecord>()
+      for (const l of localLoans) byId.set(l.loanId, l)
+      for (const l of serverLoans) byId.set(l.loanId, l)
+      const merged = Array.from(byId.values())
+      // Sync local cache with merged result
+      saveLocalLoans(merged)
+      return merged
+    },
     refetchInterval: 10_000,
   })
 }
