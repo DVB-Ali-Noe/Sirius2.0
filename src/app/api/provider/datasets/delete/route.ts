@@ -194,13 +194,19 @@ export async function POST(request: NextRequest) {
       // Unpin from IPFS (use client-provided CID or fall back to registry)
       const dataset = getByMpt(mptIssuanceId);
       const cidToUnpin = body.ipfsCid || dataset?.manifestCid;
+      console.log("[delete/finalize] ipfsCid from body:", body.ipfsCid, "| from registry:", dataset?.manifestCid, "| using:", cidToUnpin);
       if (cidToUnpin) {
         try {
           const unpinned = await unpinFromIpfs(cidToUnpin);
+          console.log("[delete/finalize] unpin result:", unpinned, "cid:", cidToUnpin);
           steps.push({ step: "ipfsUnpin", status: unpinned ? "ok" : "skipped", error: unpinned ? undefined : "not pinned" });
         } catch (e) {
+          console.log("[delete/finalize] unpin error:", (e as Error).message);
           steps.push({ step: "ipfsUnpin", status: "failed", error: (e as Error).message });
         }
+      } else {
+        console.log("[delete/finalize] no CID to unpin");
+        steps.push({ step: "ipfsUnpin", status: "skipped", error: "no CID available" });
       }
 
       // Cleanup in-memory

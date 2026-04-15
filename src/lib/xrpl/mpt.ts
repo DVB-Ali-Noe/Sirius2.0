@@ -42,7 +42,7 @@ export function buildMPTokenMetadata(metadata: DatasetMetadata): string {
   const structured = {
     t: ticker,
     n: metadata.dataset.name,
-    ac: "defi",
+    ac: metadata.dataset.category || "defi",
     in: "Sirius Protocol",
     ipfs: metadata.ipfsHash,
     zk: metadata.zkProofRef,

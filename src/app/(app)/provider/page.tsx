@@ -161,6 +161,8 @@ function UploadForm({ providerAddress, onSuccess, onError }: { providerAddress: 
       }
 
       setName("")
+      setCategory("")
+      setSchema("")
       setFile(null)
       setCurrentStep("")
       qc.invalidateQueries({ queryKey: ["datasets"] })
@@ -382,13 +384,13 @@ function DatasetModal({
         <h2 className="text-lg font-medium text-foreground mb-4 pr-8 truncate">{dataset.name}</h2>
 
         <div className="grid gap-2 text-xs text-foreground mb-4">
-          <div className="flex justify-between"><span className="text-muted">MPT ID</span><span className="font-mono truncate ml-4">{dataset.mptIssuanceId.slice(0, 16)}...{dataset.mptIssuanceId.slice(-8)}</span></div>
+          <div className="flex justify-between"><span className="text-muted">MPT ID</span><a href={`${XRPL_EXPLORER_URL}/mpt/${dataset.mptIssuanceId}`} target="_blank" rel="noopener noreferrer" className="font-mono truncate ml-4 text-accent hover:underline">{dataset.mptIssuanceId.slice(0, 16)}...{dataset.mptIssuanceId.slice(-8)}</a></div>
           <div className="flex justify-between"><span className="text-muted">Category</span><span>{dataset.category}</span></div>
           <div className="flex justify-between"><span className="text-muted">Entries</span><span>{dataset.entryCount} rows</span></div>
           <div className="flex justify-between"><span className="text-muted">Quality Score</span><span className="text-positive font-bold">{dataset.qualityScore}/100</span></div>
           <div className="flex justify-between"><span className="text-muted">Duplicates</span><span>{dataset.duplicateRate}</span></div>
           {dataset.schema && <div className="flex justify-between"><span className="text-muted">Schema</span><span>{dataset.schema}</span></div>}
-          {dataset.ipfs && <div className="flex justify-between"><span className="text-muted">IPFS</span><span className="font-mono truncate ml-4">{dataset.ipfs.slice(0, 20)}...</span></div>}
+          {dataset.ipfs && <div className="flex justify-between"><span className="text-muted">IPFS</span><a href={`https://gateway.pinata.cloud/ipfs/${dataset.ipfs}`} target="_blank" rel="noopener noreferrer" className="font-mono truncate ml-4 text-accent hover:underline">{dataset.ipfs.slice(0, 20)}...</a></div>}
         </div>
 
         <a

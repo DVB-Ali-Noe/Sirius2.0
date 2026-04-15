@@ -10,6 +10,9 @@ import { Toast } from "@/components/common/Toast"
 import { truncateAddress } from "@/lib/utils"
 import { apiPost } from "@/lib/api-client"
 import { signAndSubmitCredentialAccept, isOtsuInstalled } from "@/lib/wallet/otsu"
+import type { OnChainDataset } from "@/hooks/use-my-datasets"
+
+const XRPL_EXPLORER_URL = "https://custom.xrpl.org/wasm.devnet.rippletest.net"
 
 function StatCard({ label, value, color = "text-foreground" }: { label: string; value: string | number; color?: string }) {
   return (
@@ -116,9 +119,47 @@ function OnboardingPanel({ address }: { address: string }) {
   )
 }
 
+function DatasetInfoModal({ dataset, onClose }: { dataset: OnChainDataset; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+      <div className="relative w-full max-w-lg rounded-2xl border border-border bg-surface p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute right-4 top-4 text-muted hover:text-foreground cursor-pointer">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <h2 className="text-lg font-medium text-foreground mb-4 pr-8 truncate">{dataset.name}</h2>
+        <div className="grid gap-2 text-xs text-foreground mb-4">
+          <div className="flex justify-between"><span className="text-muted">MPT ID</span><a href={`${XRPL_EXPLORER_URL}/mpt/${dataset.mptIssuanceId}`} target="_blank" rel="noopener noreferrer" className="font-mono truncate ml-4 text-accent hover:underline">{dataset.mptIssuanceId.slice(0, 16)}...{dataset.mptIssuanceId.slice(-8)}</a></div>
+          <div className="flex justify-between"><span className="text-muted">Category</span><span>{dataset.category}</span></div>
+          <div className="flex justify-between"><span className="text-muted">Entries</span><span>{dataset.entryCount} rows</span></div>
+          <div className="flex justify-between"><span className="text-muted">Quality Score</span><span className="text-positive font-bold">{dataset.qualityScore}/100</span></div>
+          <div className="flex justify-between"><span className="text-muted">Duplicates</span><span>{dataset.duplicateRate}</span></div>
+          {dataset.schema && <div className="flex justify-between"><span className="text-muted">Schema</span><span>{dataset.schema}</span></div>}
+          {dataset.ipfs && <div className="flex justify-between"><span className="text-muted">IPFS</span><a href={`https://gateway.pinata.cloud/ipfs/${dataset.ipfs}`} target="_blank" rel="noopener noreferrer" className="font-mono truncate ml-4 text-accent hover:underline">{dataset.ipfs.slice(0, 20)}...</a></div>}
+        </div>
+        <a
+          href={`${XRPL_EXPLORER_URL}/mpt/${dataset.mptIssuanceId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-4 py-2 text-xs uppercase tracking-widest text-accent transition-colors hover:bg-accent/20 w-fit"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" y1="14" x2="21" y2="3" />
+          </svg>
+          View on Explorer
+        </a>
+      </div>
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   const { connected, address, role } = useWalletStore()
   const { data: myDatasetsData, isLoading: datasetsLoading } = useMyDatasets()
+  const [selectedDataset, setSelectedDataset] = useState<OnChainDataset | null>(null)
 
   if (!connected) {
     return (
@@ -161,7 +202,11 @@ export default function DashboardPage() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {myDatasets.map((d) => (
-                  <div key={d.mptIssuanceId} className="flex flex-col gap-2 rounded-2xl border border-border bg-surface/50 p-5">
+                  <div
+                    key={d.mptIssuanceId}
+                    onClick={() => setSelectedDataset(d)}
+                    className="flex flex-col gap-2 rounded-2xl border border-border bg-surface/50 p-5 cursor-pointer transition-colors hover:border-white/20 hover:bg-surface/80"
+                  >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-foreground truncate">{d.name}</span>
                       <span className="text-xs font-bold" style={{ color: d.qualityScore >= 80 ? "#34D399" : d.qualityScore >= 50 ? "#FF4D00" : "#F87171" }}>
@@ -179,6 +224,10 @@ export default function DashboardPage() {
             )}
           </div>
         </>
+      )}
+
+      {selectedDataset && (
+        <DatasetInfoModal dataset={selectedDataset} onClose={() => setSelectedDataset(null)} />
       )}
     </div>
   )

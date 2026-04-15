@@ -60,13 +60,9 @@ export async function POST(request: NextRequest) {
     const expectedDrops = xrpToDrops(priceNum * body.durationDays);
 
     const client = await getClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const txRes = (await (client as any).request({
-      command: "tx",
-      transaction: body.txHash,
-    })) as { result: Record<string, unknown> };
 
-    const result = txRes.result as {
+    // Poll until tx is validated (up to 15s)
+    let result: {
       TransactionType?: string;
       Destination?: string;
       Amount?: string | { value: string };
@@ -79,21 +75,41 @@ export async function POST(request: NextRequest) {
         Amount?: string | { value: string };
         Account?: string;
       };
-    };
+    } | null = null;
+
+    for (let attempt = 0; attempt < 15; attempt++) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const txRes = (await (client as any).request({
+        command: "tx",
+        transaction: body.txHash,
+      })) as { result: Record<string, unknown> };
+
+      const r = txRes.result as typeof result;
+      if (r?.validated === true) {
+        result = r;
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
+    if (!result || !result.validated) {
+      return NextResponse.json({ success: false, reason: "tx not validated after 15s" });
+    }
+
+    // Debug: log full tx structure to find Amount field
+    console.log("[verify-payment] tx keys:", Object.keys(result));
+    console.log("[verify-payment] tx_json keys:", result.tx_json ? Object.keys(result.tx_json) : "no tx_json");
+    console.log("[verify-payment] full result:", JSON.stringify(result).slice(0, 500));
 
     const txJson = result.tx_json ?? result;
     const txType = txJson.TransactionType ?? result.TransactionType;
     const destination = txJson.Destination ?? result.Destination;
-    const amount = txJson.Amount ?? result.Amount;
+    const amount = txJson.Amount ?? result.Amount ?? (result as Record<string, unknown>).DeliverMax ?? (txJson as Record<string, unknown>).DeliverMax;
     const account = txJson.Account ?? result.Account;
-    const validated = result.validated === true;
     const txResult = result.meta?.TransactionResult;
 
     if (txType !== "Payment") {
       return NextResponse.json({ success: false, reason: `tx is not a Payment (got ${txType})` });
-    }
-    if (!validated) {
-      return NextResponse.json({ success: false, reason: "tx not validated yet" });
     }
     if (txResult !== "tesSUCCESS") {
       return NextResponse.json({ success: false, reason: `tx failed on-chain: ${txResult ?? "unknown"}` });
@@ -111,9 +127,16 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const amountDrops = typeof amount === "string" ? parseInt(amount, 10) : NaN;
+    let amountDrops: number;
+    if (typeof amount === "string") {
+      amountDrops = parseInt(amount, 10);
+    } else if (amount && typeof amount === "object" && "value" in amount) {
+      amountDrops = xrpToDrops(parseFloat(amount.value));
+    } else {
+      amountDrops = NaN;
+    }
     if (!Number.isFinite(amountDrops)) {
-      return NextResponse.json({ success: false, reason: "amount is not a drops integer (not XRP)" });
+      return NextResponse.json({ success: false, reason: `cannot parse amount: ${JSON.stringify(amount)}` });
     }
     if (amountDrops < expectedDrops) {
       return NextResponse.json({

@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/common/EmptyState"
 import { Toast } from "@/components/common/Toast"
 import { apiPost, apiGet } from "@/lib/api-client"
 import { signAndSubmitPayment, isOtsuInstalled } from "@/lib/wallet/otsu"
+import { useSearchStore } from "@/stores/search"
 
 interface OnChainPool {
   vaultId: string
@@ -53,7 +54,7 @@ function LoanRequestModal({ dataset, open, onClose, onComplete }: {
   onClose: () => void
   onComplete: () => void
 }) {
-  const [duration, setDuration] = useState("30")
+  const [duration, setDuration] = useState("1")
   const { address } = useWalletStore()
   const [step, setStep] = useState<FlowStep>("idle")
   const [txHash, setTxHash] = useState<string | null>(null)
@@ -216,7 +217,8 @@ function PoolCard({ vaultId, vaultName, datasets, onSelect }: {
   datasets: Dataset[]
   onSelect: () => void
 }) {
-  const avgScore = datasets.reduce((s, d) => s + (d.boundlessProof?.assertions?.qualityScore ?? 0), 0) / datasets.length
+  const scores = datasets.map((d) => d.boundlessProof?.assertions?.qualityScore ?? 0)
+  const avgScore = scores.some((s) => s > 0) ? scores.reduce((a, b) => a + b, 0) / scores.filter((s) => s > 0).length : (datasets[0] as unknown as { qualityScore?: number })?.qualityScore ?? 0
   const totalRows = datasets.reduce((s, d) => s + d.entryCount, 0)
   const categories = [...new Set(datasets.map((d) => d.description.category))]
   const poolName = datasets[0]?.description?.name ?? "On-chain Dataset"
@@ -274,6 +276,7 @@ export default function MarketplacePage() {
   const [selectedVault, setSelectedVault] = useState<string | null>(null)
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null)
   const [detailDataset, setDetailDataset] = useState<Dataset | null>(null)
+  const search = useSearchStore((s) => s.query)
 
   const isLoading = datasetsLoading || poolsLoading
 
@@ -286,7 +289,9 @@ export default function MarketplacePage() {
   for (const pool of onChainPools.filter((p) => {
     if (!p.loanBrokerId) return false
     const displayName = p.vaultName ?? p.dataset?.name ?? ""
-    return displayName.length > 3
+    if (displayName.length <= 3) return false
+    const entries = (p.dataset?.qualityCertificate?.entryCount as number) ?? 0
+    return entries > 0
   })) {
     // Try to find matching dataset from Sirius registry
     const siriusDataset = datasets?.find((d) => d.mptIssuanceId === pool.mptIssuanceId)
@@ -299,6 +304,7 @@ export default function MarketplacePage() {
         category: pool.dataset?.category ?? "defi",
         format: "jsonl",
         language: "en",
+        pricePerDay: pool.pricePerDay ?? pool.dataset?.pricePerDay ?? undefined,
       },
       manifestCid: pool.dataset?.ipfs ?? "",
       merkleRoot: "",
@@ -350,7 +356,15 @@ export default function MarketplacePage() {
             <EmptyState title="No pools available" description="Check back later or deposit a dataset as a provider." />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {[...vaultGroups.entries()].map(([vaultId, group]) => (
+              {[...vaultGroups.entries()]
+                .filter(([, group]) => {
+                  if (!search.trim()) return true
+                  const q = search.toLowerCase()
+                  const name = (group.name ?? group.datasets[0]?.description?.name ?? "").toLowerCase()
+                  const cats = group.datasets.map((d) => d.description.category.toLowerCase()).join(" ")
+                  return name.includes(q) || cats.includes(q)
+                })
+                .map(([vaultId, group]) => (
                 <PoolCard
                   key={vaultId}
                   vaultId={vaultId}

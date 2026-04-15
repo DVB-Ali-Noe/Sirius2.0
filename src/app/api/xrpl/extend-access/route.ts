@@ -35,14 +35,15 @@ export async function POST(request: NextRequest) {
     if (!loan) {
       return NextResponse.json({ success: false, reason: "loan not found" }, { status: 404 });
     }
-    if (loan.status !== "ACTIVE" && loan.status !== "REPAYING") {
+    if (loan.status === "DEFAULTED") {
       return NextResponse.json({
         success: false,
-        reason: `loan not extendable in status ${loan.status}`,
+        reason: "loan is defaulted — cannot extend",
       });
     }
-    if (loan.expiresAt && loan.expiresAt < Date.now()) {
-      return NextResponse.json({ success: false, reason: "loan already expired — use borrow flow" });
+    // Re-activate completed loans
+    if (loan.status === "COMPLETED") {
+      loan.status = "ACTIVE";
     }
 
     const datasetId = loan.datasetId;

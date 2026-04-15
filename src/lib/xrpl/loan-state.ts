@@ -142,9 +142,10 @@ export function clearAllLoans(): number {
 export function extendLoanExpiry(loanId: string, additionalMs: number): LoanRecord {
   const loan = loans.get(loanId);
   if (!loan) throw new Error(`Loan ${loanId} not found`);
-  if (loan.status !== "ACTIVE" && loan.status !== "REPAYING") {
+  if (loan.status === "DEFAULTED") {
     throw new Error(`Cannot extend loan in status ${loan.status}`);
   }
+  if (loan.status === "COMPLETED") loan.status = "ACTIVE";
   const base = loan.expiresAt && loan.expiresAt > Date.now() ? loan.expiresAt : Date.now();
   loan.expiresAt = base + additionalMs;
   return loan;
