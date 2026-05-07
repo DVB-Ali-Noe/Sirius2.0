@@ -1,6 +1,6 @@
 # DataLend Protocol — XRPL Native Dataset Lending
 
-> **DeFi applied to data.** Borrow and lend access to AI datasets using XRPL's native lending infrastructure. Providers earn XRP yield. Borrowers get time-limited, ZK-certified dataset access. No one owns the data permanently.
+> **DeFi applied to https://sirius2-0-omega.vercel.app/.** Borrow and lend access to AI datasets using XRPL's native lending infrastructure. Providers earn XRP yield. Borrowers get time-limited, ZK-certified dataset access. No one owns the data permanently.
 
 **Built on:** XRPL wasm devnet (`wss://wasm.devnet.rippletest.net:51233`)
 **ZK layer:** RISC Zero zkVM, on-chain verification via XRPL Smart Escrow Wasm — see [`/boundless`](./boundless/README.md)
