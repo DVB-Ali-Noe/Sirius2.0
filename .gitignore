@@ -91,3 +91,11 @@ audit.md
 .eslintcache
 .stylelintcache
 .sirius-data/
+
+# Internal docs
+MVP-STATUS.md
+audit.md
+CLAUDE.md
+Plan.md
+TASKS.md
+Pitch.md
