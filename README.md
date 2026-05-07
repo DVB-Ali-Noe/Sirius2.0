@@ -2,22 +2,25 @@
 
 > **DeFi applied to data.** Borrow and lend access to AI datasets using XRPL's native lending infrastructure. Providers earn XRP yield. Borrowers get time-limited, ZK-certified dataset access. No one owns the data permanently.
 
-**🌐 Live Demo:** _coming soon on Vercel_
-**🔗 Built on:** XRPL wasm devnet (`wss://wasm.devnet.rippletest.net:51233`)
+**Built on:** XRPL wasm devnet (`wss://wasm.devnet.rippletest.net:51233`)
+**ZK layer:** RISC Zero zkVM, on-chain verification via XRPL Smart Escrow Wasm — see [`/boundless`](./boundless/README.md)
 
 ---
 
-## Quick Start (local dev)
+## Quick Start
 
 ```bash
 git clone https://github.com/DVB-Ali-Noe/Sirius2.0.git
 cd Sirius2.0
-npm install
+pnpm install
 cp .env.example .env       # then fill in the values
-npm run dev                # http://localhost:3000
+pnpm dev                   # http://localhost:3000
 ```
 
 Required env vars are listed in [.env.example](.env.example).
+Package manager is pinned to `pnpm@10.17.1` (see `package.json`).
+
+To rebuild the ZK quality proofs from scratch (Rust workspace), see [`boundless/README.md`](./boundless/README.md).
 
 ---
 
@@ -429,6 +432,8 @@ In the highest-security configuration, borrowers never receive a decryption key 
 ## Quality Certification — Boundless ZK
 
 Boundless generates zero-knowledge proofs of dataset quality metrics without revealing any data.
+
+> **Implementation:** the actual RISC Zero guest, host CLI, and **on-chain Wasm verifier** for XRPL Smart Escrow live in [`/boundless`](./boundless/README.md). That README documents the 58-byte journal layout, the `escrow` (full verifier, ~131 KB) vs `escrow-mini` (score-only, ~3.3 KB, devnet-deployed) tradeoff, and the **xrpl.js 4.5 Smart Escrow vs 4.6 XLS-66 incompatibility** the project had to work around.
 
 ### What the ZK Proof Asserts
 
